@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="jquery-3.6.3.min.js"></script>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="bootstrap.min.js"></script>
+    <link rel="stylesheet" href="chartist.min.css">
+    <script src="chartist.min.js"></script>
+    <link rel="icon" href="oszilloskop.png" type="image/png">
+    <title>oscilloscope</title>
+
+    <style>
+        .battery:after {
+            background-color: #fff;
+            border: 2px solid #000;
+            content: "";
+            display: block;
+            height: 16px;
+            position: absolute;
+            right: -6px;
+            top: 6px;
+            width: 6px;
+        }
+
+        .battery {
+            background-color: #fff;
+            border: 2px solid #000;
+            height: 32px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            width: 100px;
+        }
+
+        .battery .battery-level.high {
+            background-color: #66CD00;
+            height: 100%;
+        }
+
+        .battery .battery-level.medium {
+            background-color: #FCD116;
+            height: 100%;
+        }
+
+        .battery .battery-level.low {
+            background-color: #FF3333;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- navbar -->
+    <nav class="navbar sticky-top navbar-expand-sm navbar-dark bg-dark">
+        <span class="navbar-brand mb-0 h1">
+            <img src="oszilloskop.png" width="30" height="30" class="d-inline-block align-top" alt="">
+            oszilloskop
+        </span>
+        </div>
+        <div class="navbar-center battery">
+            <div class="battery-level"></div>
+        </div>
+        <ul class="navbar-nav d-flex">
+            <!--
+            <li class="nav-item">
+                <a class="nav-link" href="#">Link 3</a>
+            </li>
+            -->
+            <li class="nav-item">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-link nav-link" data-toggle="modal" data-target="#wifiModal">
+                    wifi
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Modal -->
+    <div class="modal fade" id="wifiModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">WiFi settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form>
+                    <div class="modal-body">
+                        <div class="form-group row">
+                            <label for="ssid" class="col-3 col-form-label">ssid</label>
+                            <div class="col-9">
+                                <input type="text" class="form-control" name="ssid" placeholder="my wlan network name">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="password" class="col-3 col-form-label">password</label>
+                            <div class="col-9">
+                                <input type="password" class="form-control" name="password"
+                                    placeholder="network password">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="ip" class="col-3 col-form-label">IP-Adress</label>
+                            <div class="col-9">
+                                <input type="text" class="form-control" id="ipv4" name="ipv4" value="192.168.4.1" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button submit" class="btn btn-primary" data-dismiss="modal">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row pt-2">
+            <div class="col-md-6">
+                <div class="ct-chart ct-square"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-6 p-1">
+                        <div class="p-3 card bg-light text-dark text-center">
+                            <h7 class="text-center">Aquisition</h7>
+                            <button class="btn btn-success btn-block mt-2">Start</button>
+                            <button class="btn btn-danger btn-block">Stop</button>
+                            <button class="btn btn-warning btn-block">Clear</button>
+                            <select class="custom-select mt-2" id="inputGroupSelect01">
+                                <option selected>Choose...</option>
+                                <option value="1">Single shot</option>
+                                <option value="2">continues</option>
+                            </select>
+                        </div>
+                        <div class="p-3 mt-2 card bg-light text-dark text-center">
+                            <h7 class="text-center">Levels</h7>
+                            <div class="row">
+                                <div class="col-3 p-0">CH1</div>
+                                <div class="col-3 p-0">CH2</div>
+                                <div class="col-6 p-0">Trigger</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
+                                    <input type="range" id="sliderCH1" min="-5" max="5" step="0.1" value="0" style="appearance: slider-vertical; width: 15px; height: 300px;" />
+                                </div>
+                                <div class="col-3">
+                                    <input type="range" id="sliderCH2" min="-5" max="5" step="0.1" value="0" style="appearance: slider-vertical; width: 15px; height: 300px;" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="range" id="sliderTrigger" min="-5" max="5" step="0.1" value="0" style="appearance: slider-vertical; width: 15px; height: 300px;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 p-1">
+                        <div class="p-3 card bg-light text-dark text-center">
+                            <h7 class="text-center">Display</h7>
+                            <div class="custom-control custom-switch mt-2">
+                                <input type="checkbox" checked="true" class="custom-control-input" id="selectCH1">
+                                <label class="custom-control-label" for="selectCH1">CH1</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" checked="true" class="custom-control-input" id="selectCH2">
+                                <label class="custom-control-label" for="selectCH2">CH2</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" checked="true" class="custom-control-input" id="selectTrigger">
+                                <label class="custom-control-label" for="selectTrigger">Trigger</label>
+                            </div>
+                        </div>
+                        <div class="p-3 mt-2 card bg-light text-dark text-center">
+                            <h7 class="text-center">Vertical</h7>
+                            <div class="row mt-2">
+                                <label for="exampleFormControlSelect1" class="col-4 col-form-label">CH1</label>
+                                <div class="col-8">
+                                    <select class="form-control" id="exampleFormControlSelect1">
+                                        <option>1V/div</option>
+                                        <option>2V/div</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <label for="exampleFormControlSelect1" class="col-4 col-form-label">CH2</label>
+                                <div class="col-8">
+                                    <select class="form-control" id="exampleFormControlSelect1">
+                                        <option>1V/div</option>
+                                        <option>2V/div</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 mt-2 card bg-light text-dark text-center">
+                            <h7 class="text-center">Horizontal</h7>
+                            <div class="row m-2">
+                                <select class="form-control" id="exampleFormControlSelect1">
+                                    <option>0.5us/div</option>
+                                    <option>1us/div</option>
+                                </select>
+                            </div>
+                            <div class="row m-2">
+                                <input type="range" class="btn-block" />
+                            </div>
+                        </div>
+                        <div class="p-3 mt-2 card bg-light text-dark text-center">
+                            <h7 class="text-center">Trigger</h7>
+                            <div class="row m-2">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline1" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline1">CH1</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline2" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline2">CH2</label>
+                                </div>
+                            </div>
+                            <div class="row ml-2 mr-2">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline1" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline1">Rising</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline2" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline2">Falling</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 mt-2 card bg-light text-dark text-center">
+                            <h7 class="text-center">Probe</h7>
+                            <div class="row m-2">
+                                <div class="d-inline">CH1</div>
+                                <div class="custom-control custom-radio custom-control-inline ml-auto">
+                                    <input type="radio" id="customRadioInline1" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline1">1:1</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline2" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline2">10:1</label>
+                                </div>
+                            </div>
+                            <div class="row ml-2 mr-2">
+                                <div class="d-inline">CH2</div>
+                                <div class="custom-control custom-radio custom-control-inline ml-auto">
+                                    <input type="radio" id="customRadioInline1" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline1">1:1</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="customRadioInline2" name="customRadioInline1"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadioInline2">10:1</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var dataCH1 = [-1,-2,-3,-4,-5,1,2,3,4,5];
+        var dataCH2 = [-2,-1,0,1,2,1,0,-1,-2,-1];
+        var dataTrigger = [0,0,0,0,0,0,0,0,0,0]
+
+        var data = {
+            labels: [-4,-3,-2,-1,0,1,2,3,4,5],
+            series: [dataCH1, dataCH2, dataTrigger]
+        };
+        
+        const options = {
+            fullWidth: true,
+            showPoint: false,
+            axisX: {
+                high: 5,
+                low: -5,
+                divisor: 1,
+                showLabel: false
+            },
+            axisY: {
+                offset: 0,
+                high: 5,
+                low: -5,
+                divisor: 1,
+                showLabel: false
+            }
+        };
+        
+
+        var chart = new Chartist.Line('.ct-chart', data, options);
+        
+
+        $("#selectCH1").change(function() {
+            if(this.checked) {
+                data.series[0] = dataCH1;
+            }
+            else {
+                data.series[0] = [];
+            }
+            chart.update();
+        });
+
+        $("#selectCH2").change(function() {
+            if(this.checked) {
+                data.series[1] = dataCH2;
+            }
+            else {
+                data.series[1] = [];
+            }
+            chart.update();
+        });
+
+        $("#selectTrigger").change(function() {
+            if(this.checked) {
+                data.series[2] = dataTrigger;
+            }
+            else {
+                data.series[2] = [];
+            }
+            chart.update();
+        });
+
+        // Add the level slider
+        $("#sliderTrigger").on("input", function () {
+            data.series[2] = Array(10).fill($(this).val());
+            chart.update();
+        });
+
+        const ipv4Input = document.querySelector('#ipv4');
+        ipv4Input.addEventListener('input', function () {
+            const isValid = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(this.value);
+
+            if (isValid) {
+                ipv4Input.classList.remove('is-invalid');
+                ipv4Input.classList.add('is-valid');
+            } else {
+                ipv4Input.classList.remove('is-valid');
+                ipv4Input.classList.add('is-invalid');
+            }
+        });
+    </script>
+</body>
+
+</html>
