@@ -77,7 +77,7 @@ void setup()
   // libraries
   // jquery
   webServer.on("/jquery-3.6.3.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
+               { request->send(SPIFFS, "/jquery-3.6.3.min.js", "text/js"); });
   // bootstrap
   webServer.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(SPIFFS, "/bootstrap.min.css", "text/css"); });
