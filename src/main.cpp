@@ -66,31 +66,7 @@ void setup()
   Serial.println("Starting DNS Server");
   dnsServer.start(53, "*", WiFi.softAPIP());
   
-  // website content
-  // home and root
-  webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/index.html", "text/html"); });
-  webServer.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/index.html", "text/html"); });
-  webServer.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/index.js", "text/js"); });
-  // libraries
-  // jquery
-  webServer.on("/jquery-3.6.3.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/jquery-3.6.3.min.js", "text/js"); });
-  // bootstrap
-  webServer.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/bootstrap.min.css", "text/css"); });
-  webServer.on("/bootstrap.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
-  // chartist
-  webServer.on("/chartist.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/chartist.min.css", "text/css"); });
-  webServer.on("/chartist.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/chartist.min.js", "text/js"); });
-  // images
-  webServer.on("/logo.ico", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/logo.ico", "image/ico"); });
+  initHttpRequests();
 
   webServer.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
   ws.onEvent(onEvent); // callback for websocket event
@@ -99,6 +75,8 @@ void setup()
   webServer.begin();
   Serial.println("All Done!");
 }
+
+
 
 void loop()
 {

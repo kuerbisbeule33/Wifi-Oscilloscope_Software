@@ -16,3 +16,4 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t clientID);
 
 void initHttpRequests();//setup callbacks for HTTP Get and HTTP Post requests
+

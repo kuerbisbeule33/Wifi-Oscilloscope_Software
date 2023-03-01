@@ -33,37 +33,37 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
     if (data == "getAll") {   } 
 }
 
-/*
+
 void initHttpRequests() {
     //requested file not there error
-    //webServer.onNotFound([](AsyncWebServerRequest *request){
-    //request->send(404, "text/plain", "The content you are looking for was not found."); });
+    webServer.onNotFound([](AsyncWebServerRequest *request){
+    request->send(404, "text/plain", "The content you are looking for was not found."); });
 
     // website content
     // home and root
     webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/index.html", "text/html"); });
+               { request->send(SPIFFS, "/index.html", "text/html"); });
     webServer.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/index.html", "text/html"); });
-    webServer.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/index.js", "text/js"); });                     
+               { request->send(SPIFFS, "/index.html", "text/html"); });
+  webServer.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
+               { request->send(SPIFFS, "/index.js", "text/js"); });
     // libraries
+    // jquery
+    webServer.on("/jquery-3.6.3.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
+               { request->send(SPIFFS, "/jquery-3.6.3.min.js", "text/js"); });
     // bootstrap
     webServer.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/bootstrap.min.css", "text/css"); });
+               { request->send(SPIFFS, "/bootstrap.min.css", "text/css"); });
     webServer.on("/bootstrap.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
+               { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
     // chartist
     webServer.on("/chartist.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/bootstrap.min.css", "text/css"); });
+               { request->send(SPIFFS, "/chartist.min.css", "text/css"); });
     webServer.on("/chartist.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
-    // jquery
-    webServer.on("/jquery-3.63.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
+               { request->send(SPIFFS, "/chartist.min.js", "text/js"); });
     // images
     webServer.on("/logo.ico", HTTP_GET, [](AsyncWebServerRequest *request)
-                     { request->send(SPIFFS, "/logo.ico", "image/ico"); });
+               { request->send(SPIFFS, "/logo.ico", "image/ico"); });
 
     // Http post with new wifi Login data
     webServer.on("/wifiData", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -106,7 +106,3 @@ void initHttpRequests() {
         ESP.restart();
     });
 }
-*/
-
-
-    
