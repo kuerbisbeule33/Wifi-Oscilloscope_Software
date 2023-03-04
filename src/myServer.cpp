@@ -10,6 +10,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     switch (type) {
     case WS_EVT_CONNECT:
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+        ws.textAll(toJsonString("data", 55));
         break;
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -45,8 +46,6 @@ void initHttpRequests() {
                { request->send(SPIFFS, "/index.html", "text/html"); });
     webServer.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(SPIFFS, "/index.html", "text/html"); });
-  webServer.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/index.js", "text/js"); });
     // libraries
     // jquery
     webServer.on("/jquery-3.6.3.min.js", HTTP_GET, [](AsyncWebServerRequest *request)

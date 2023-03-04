@@ -33,21 +33,56 @@
             margin-right: auto;
             position: relative;
             width: 100px;
+            text-align: center;
         }
 
-        .battery .battery-level.high {
+        .battery #battery-level.high {
             background-color: #66CD00;
             height: 100%;
         }
 
-        .battery .battery-level.medium {
+        .battery #battery-level.medium {
             background-color: #FCD116;
             height: 100%;
         }
 
-        .battery .battery-level.low {
+        .battery #battery-level.low {
             background-color: #FF3333;
             height: 100%;
+        }
+
+        .battery #battery-level {
+            position: absolute;
+        }
+
+        .battery #battery-text {
+            position: relative;
+            text-align: center;
+            
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .ct-series-a .ct-line {
+            stroke: red;
+        }
+        .ct-series-b .ct-line {
+            stroke: red;
+            stroke-dasharray: 5px 5px;
+        }
+        .ct-series-c .ct-line {
+            stroke: greenyellow;
+        }
+        .ct-series-d .ct-line {
+            stroke: greenyellow;
+            stroke-dasharray: 5px 5px;
+        }
+        .ct-series-e .ct-line {
+            stroke: blue;
+            stroke-dasharray: 5px 5px;
+            stroke-width: 5px;
         }
     </style>
 </head>
@@ -60,65 +95,20 @@
             oszilloskop
         </span>
         </div>
-        <div class="navbar-center battery">
-            <div class="battery-level"></div>
-        </div>
-        <ul class="navbar-nav d-flex">
-            <!--
+
+        <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-                <a class="nav-link" href="#">Link 3</a>
-            </li>
-            -->
-            <li class="nav-item">
-                <!-- Button trigger modal -->
-                <button id="wifi" type="button" class="btn btn-link nav-link" data-toggle="modal" data-target="#wifiModal">
-                    wifi
-                </button>
+                <div class="battery">
+                    <div id="battery-level"></div>
+                    <div id="battery-text">
+                        <svg id="loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/></svg>
+                        <strong id="battery-percent"></strong>
+                    </div>
+                </div>
             </li>
         </ul>
     </nav>
 
-    <!-- Modal -->
-    <div class="modal fade" id="wifiModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">WiFi settings</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form>
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <label for="ssid" class="col-3 col-form-label">ssid</label>
-                            <div class="col-9">
-                                <input type="text" class="form-control" name="ssid" placeholder="my wlan network name">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="password" class="col-3 col-form-label">password</label>
-                            <div class="col-9">
-                                <input type="password" class="form-control" name="password"
-                                    placeholder="network password">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="ip" class="col-3 col-form-label">IP-Adress</label>
-                            <div class="col-9">
-                                <input type="text" class="form-control" id="ipv4" name="ipv4" value="192.168.4.1" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button submit" class="btn btn-primary" data-dismiss="modal">Save changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <div class="container-fluid">
         <div class="row pt-2">
@@ -148,13 +138,16 @@
                             </div>
                             <div class="row">
                                 <div class="col-3">
-                                    <input type="range" id="sliderCH1" min="-5" max="5" step="0.1" value="0" style="appearance: slider-vertical; width: 15px; height: 300px;" />
+                                    <input type="range" id="sliderCH1" min="-5" max="5" step="0.1" value="0"
+                                        style="appearance: slider-vertical; width: 15px; height: 300px;" />
                                 </div>
                                 <div class="col-3">
-                                    <input type="range" id="sliderCH2" min="-5" max="5" step="0.1" value="0" style="appearance: slider-vertical; width: 15px; height: 300px;" />
+                                    <input type="range" id="sliderCH2" min="-5" max="5" step="0.1" value="0"
+                                        style="appearance: slider-vertical; width: 15px; height: 300px;" />
                                 </div>
                                 <div class="col-6">
-                                    <input type="range" id="sliderTrigger" min="-5" max="5" step="0.1" value="0" style="appearance: slider-vertical; width: 15px; height: 300px;" />
+                                    <input type="range" id="sliderTrigger" min="-5" max="5" step="0.1" value="0"
+                                        style="appearance: slider-vertical; width: 15px; height: 300px;" />
                                 </div>
                             </div>
                         </div>
@@ -270,18 +263,38 @@
         </div>
     </div>
 
-    
-
     <script>
-        var dataCH1 = [-1,-2,-3,-4,-5,1,2,3,4,5];
-        var dataCH2 = [-2,-1,0,1,2,1,0,-1,-2,-1];
-        var dataTrigger = [0,0,0,0,0,0,0,0,0,0]
+function updateBattery(level, charging = false) {
+            var batteryPercent = document.getElementById('battery-percent');
+            var batteryLevel = document.getElementById('battery-level');
+            var batteryLoading = document.getElementById('loading');
+            batteryPercent.innerHTML = level + '%';
+            batteryLevel.style.width = level + '%';
+            if (charging) {
+                batteryLoading.classList.remove('hide');
+            } else{
+                batteryLoading.classList.add('hide');
+            }
+            if (level > 50) {
+                batteryLevel.classList.add('high');
+                batteryLevel.classList.remove('medium');
+                batteryLevel.classList.remove('low');
+            } else if (level >= 25) {
+                batteryLevel.classList.add('medium');
+                batteryLevel.classList.remove('high');
+                batteryLevel.classList.remove('low');
+            } else {
+                batteryLevel.classList.add('low');
+                batteryLevel.classList.remove('high');
+                batteryLevel.classList.remove('medium');
+            }
+        }
 
         var data = {
-            labels: [-4,-3,-2,-1,0,1,2,3,4,5],
-            series: [dataCH1, dataCH2, dataTrigger]
+            labels: [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
+            series: [Array(10).fill(5), Array(10).fill(4), Array(10).fill(3), Array(10).fill(2), Array(10).fill(1)]
         };
-        
+
         const options = {
             fullWidth: true,
             showPoint: false,
@@ -299,59 +312,113 @@
                 showLabel: false
             }
         };
-        
 
         var chart = new Chartist.Line('.ct-chart', data, options);
+
+        var gateway = `ws://${window.location.hostname}/ws`;
+        var websocket;
+
+        var showCH1 = true;
+        var showCH2 = true;
+        var showTrigger = true;
+
+        function initElements() {
+            document.getElementById('selectCH1').addEventListener('change', function() {
+                if (this.checked) {showCH1 = true;data.series[1] = Array(10).fill(document.getElementById('sliderCH1').value);}
+                else {showCH1 = false; data.series[0] = [];data.series[1] = [];}
+                chart.update();
+            });
+
+            document.getElementById('selectCH2').addEventListener('change', function() {
+                if (this.checked) {showCH2 = true;data.series[3] = Array(10).fill(document.getElementById('sliderCH2').value);}
+                else {showCH2 = false; data.series[2] = [];data.series[3] = [];}
+                chart.update();
+            });
+
+            document.getElementById('selectTrigger').addEventListener('change', function() {
+                if (this.checked) {showTrigger = true;data.series[4] = Array(10).fill(document.getElementById('sliderTrigger').value);}
+                else {showTrigger = false; data.series[4] = [];}
+                chart.update();
+            });
+
+            document.getElementById('sliderCH1').addEventListener('input', function() {
+                if (showTrigger){
+                    data.series[1] = Array(10).fill(this.value);
+                    chart.update();
+                }
+                websocket.send(JSON.stringify({ channel: "CH1", type: "offset", value: this.value }));
+            });
+
+            document.getElementById('sliderCH2').addEventListener('input', function() {
+                if (showTrigger){
+                    data.series[3] = Array(10).fill(this.value);
+                    chart.update();
+                }
+                websocket.send(JSON.stringify({ channel: "CH2", type: "offset", value: this.value }));
+            });
+
+            document.getElementById('sliderTrigger').addEventListener('input', function() {
+                if (showTrigger){
+                    data.series[4] = Array(10).fill(this.value);
+                    chart.update();
+                }
+            });
+        }
+
+        //callbacks for socket communication
+        function initWebSocket() {
+            console.log('Trying to open a WebSocket connection...');
+            websocket = new WebSocket(gateway);
+            websocket.onopen = onOpen;
+            websocket.onclose = onClose;
+            websocket.onmessage = onMessage;
+        }
+
+        //request all data when socket opens
+        function onOpen(event) {
+            console.log('Connection opened');
+            //anfrage für IO werte stellen
+            //var msg = { data: "getAll" };
+            //websocket.send(JSON.stringify(msg));
+            websocket.send('hi');
+        }
+
+        //gets called on websocket connection lost
+        function onClose(event) {
+            console.log('Connection closed');
+            //try to connect again after connection lost
+            setTimeout(initWebSocket, 2000);
+        }
+
+        //recived new message through websocket
+        function onMessage(event) {
+            console.log(event.data);
+            var recivedData = JSON.parse(event.data);
+            //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
+            console.log(recivedData.CH1);
+            console.log(recivedData.CH2);
+            if (showCH1) {data.series[0] = recivedData.CH1;}
+            if (showCH2) {data.series[2] = recivedData.CH2;}
+            if (recivedData.status = "battery"){updateBattery(recivedData.level, recivedData.charging);}
+            chart.update();
+        }
+
+        //callback when website gets loaded and closed
+        window.addEventListener('load', onLoad);
+        window.addEventListener('close', disconect);
+
+        //init all when loading side
+        function onLoad(event) {
+            //initWebSocket();
+            initElements();
+        }
+
+        //close websocket on closing side
+        function disconect(event) {
+            websocket.close();
+        }
         
-
-        $("#selectCH1").change(function() {
-            if(this.checked) {
-                data.series[0] = dataCH1;
-            }
-            else {
-                data.series[0] = [];
-            }
-            chart.update();
-        });
-
-        $("#selectCH2").change(function() {
-            if(this.checked) {
-                data.series[1] = dataCH2;
-            }
-            else {
-                data.series[1] = [];
-            }
-            chart.update();
-        });
-
-        $("#selectTrigger").change(function() {
-            if(this.checked) {
-                data.series[2] = dataTrigger;
-            }
-            else {
-                data.series[2] = [];
-            }
-            chart.update();
-        });
-
-        // Add the level slider
-        $("#sliderTrigger").on("input", function () {
-            data.series[2] = Array(10).fill($(this).val());
-            chart.update();
-        });
-
-        const ipv4Input = document.querySelector('#ipv4');
-        ipv4Input.addEventListener('input', function () {
-            const isValid = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(this.value);
-
-            if (isValid) {
-                ipv4Input.classList.remove('is-invalid');
-                ipv4Input.classList.add('is-valid');
-            } else {
-                ipv4Input.classList.remove('is-valid');
-                ipv4Input.classList.add('is-invalid');
-            }
-        });
+        
     </script>
 </body>
 
