@@ -10,14 +10,14 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     switch (type) {
     case WS_EVT_CONNECT:
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-        ws.textAll(toJsonString("data", 55));
+        //ws.textAll(toJsonString("data", 55));
         break;
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         break;
     case WS_EVT_DATA:
         //message from socket recived and valid
-        Serial.println("client data from '" + String(client->id()) + "' : " + String((char *)data));
+        //Serial.println("client data from '" + String(client->id()) + "' : " + String((char *)data));
         handleWebSocketMessage(arg, data, len, client->id());//callback with valid message
         break;
     }
@@ -27,11 +27,29 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t clientID) {
     String id;
     String data;
-    // parse string to json and extract data
     msgToDataPair(msg, id, data);
+    if (id == "trigger-run"){
+            
+    }
+    else if (id == "trigger-mode"){
 
-    //all data for main paige when new loaded requested
-    if (data == "getAll") {   } 
+    }
+    else if (id == "trigger-edge"){
+
+    }
+    else if (id == "trigger-channel"){
+
+    }
+    else if (id == "offset-CH1"){
+
+    }
+    else if (id == "offset-CH2"){
+
+    }
+    else if (id == "trigger"){
+
+    }
+    Serial.println("id: " + id + " | data: " + data);
 }
 
 
@@ -63,45 +81,4 @@ void initHttpRequests() {
     // images
     webServer.on("/logo.ico", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(SPIFFS, "/logo.ico", "image/ico"); });
-
-    // Http post with new wifi Login data
-    webServer.on("/wifiData", HTTP_POST, [](AsyncWebServerRequest *request) {
-        //variables to save data from post
-        String ssid;
-        String password;
-        String ip;
-        //loop over parameters from post method
-        size_t params = request->params();//number of params from post request
-        Serial.println("new wifi credentials with " + String(params) + "parameters send");
-        for(size_t i = 0; i < params; i++) {
-            AsyncWebParameter* p = request->getParam(i);//load one parameter from parameter list
-            // HTTP POST ssid value
-            if (p->name() == "ssid") {
-                ssid = p->value().c_str();
-                Serial.print("SSID set to: ");
-                Serial.println(ssid);
-            }
-            // HTTP POST pass value
-            if (p->name() == "password") {
-                password = p->value().c_str();
-                Serial.print("Password set to: ");
-                Serial.println(password);
-            }
-            // HTTP POST ip value
-            if (p->name() == "ip") {
-                ip = p->value().c_str();
-                Serial.print("IP Address set to: ");
-                Serial.println(ip);
-                }
-        }
-        //reply for website
-        request->send(200, "text/plain", "Done. ESP will restart, connect to your router and go to IP address: " + ip);
-        //convert to json, save and restart
-        jsonDoc.clear();
-        jsonDoc["ssid"] = ssid;
-        jsonDoc["password"] = password;
-        jsonDoc["ip"] = ip;
-        loadGlobalJsonToFile(loginPath);
-        ESP.restart();
-    });
 }

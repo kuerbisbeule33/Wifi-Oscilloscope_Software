@@ -122,7 +122,7 @@
                             <h5 class="text-center">Aquisition</h5>
                             <button class="btn btn-danger btn-block mt-2" id="start">stop</button>
                             <select class="custom-select mt-2" id="mode">
-                                <option value="single">Single shot</option>
+                                <option value="single">single shot</option>
                                 <option value="continues">continues</option>
                                 <option value="none" selected="selected">none</option>
                             </select>
@@ -269,29 +269,34 @@
             }
         }
 
-        var data = {
-            labels: [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
-            series: [Array(10).fill(5), Array(10).fill(4), Array(10).fill(3), Array(10).fill(2), Array(10).fill(1)]
-        };
+        const arrayRange = (start, stop, step) =>
+            Array.from(
+            { length: (stop - start) / step + 1 },
+            (value, index) => start + index * step
+            );   
 
         const options = {
             fullWidth: true,
             showPoint: false,
             axisX: {
-                high: 5,
-                low: -5,
-                divisor: 1,
-                showLabel: false
+                showLabel: false,
+                type : Chartist.FixedScaleAxis,
+                low : 0,
+                high : 10,
+                ticks : [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             },
             axisY: {
                 offset: 0,
-                high: 5,
-                low: -5,
-                divisor: 1,
-                showLabel: false
+                showLabel: false,
+                type : Chartist.FixedScaleAxis,
+                low : -5,
+                high : 5,
+                ticks : [ -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
             }
         };
-
+        
+        var data = {series: [[], [], [], [], []]};
+        
         var chart = new Chartist.Line('.ct-chart', data, options);
 
         var gateway = `ws://${window.location.hostname}/ws`;
@@ -303,44 +308,67 @@
 
         function initElements() {
             document.getElementById('selectCH1').addEventListener('change', function() {
-                if (this.checked) {showCH1 = true;data.series[1] = Array(10).fill(document.getElementById('sliderCH1').value);}
-                else {showCH1 = false; data.series[0] = [];data.series[1] = [];}
+                if (this.checked) {
+                    showCH1 = true;
+                    var val = document.getElementById('sliderCH1').value;
+                    var line = [{ x: 0, y: val}, { x: 10, y: val}];
+                    data.series[1] = line;
+                } else {
+                    showCH1 = false; 
+                    data.series[0] = [];
+                    data.series[1] = [];
+                } 
                 chart.update();
             });
 
             document.getElementById('selectCH2').addEventListener('change', function() {
-                if (this.checked) {showCH2 = true;data.series[3] = Array(10).fill(document.getElementById('sliderCH2').value);}
-                else {showCH2 = false; data.series[2] = [];data.series[3] = [];}
+                if (this.checked) {
+                    showCH2 = true;
+                    var val = document.getElementById('sliderCH2').value;
+                    var line = [{ x: 0, y: val}, { x: 10, y: val}];
+                    data.series[3] = line;
+                } else {
+                    showCH2 = false; 
+                    data.series[2] = [];
+                    data.series[3] = [];
+                } 
                 chart.update();
             });
 
             document.getElementById('selectTrigger').addEventListener('change', function() {
-                if (this.checked) {showTrigger = true;data.series[4] = Array(10).fill(document.getElementById('sliderTrigger').value);}
-                else {showTrigger = false; data.series[4] = [];}
+                if (this.checked) {
+                    showTrigger = true;
+                    var val = document.getElementById('sliderTrigger').value;
+                    var line = [{ x: 0, y: val}, { x: 10, y: val}];
+                } else {
+                    showTrigger = false; 
+                    data.series[4] = [];
+                }
                 chart.update();
             });
 
             document.getElementById('sliderCH1').addEventListener('input', function() {
                 if (showTrigger){
-                    data.series[1] = Array(10).fill(this.value);
+                    data.series[1] = [{ x: 0, y: this.value}, { x: 10, y: this.value}];
                     chart.update();
                 }
-                websocket.send(JSON.stringify({ channel: "CH1", type: "offset", value: this.value }));
+                websocket.send(JSON.stringify({ id: "offset-CH1", data: this.value }));
             });
 
             document.getElementById('sliderCH2').addEventListener('input', function() {
                 if (showTrigger){
-                    data.series[3] = Array(10).fill(this.value);
+                    data.series[3] = [{ x: 0, y: this.value}, { x: 10, y: this.value}];
                     chart.update();
                 }
-                websocket.send(JSON.stringify({ channel: "CH2", type: "offset", value: this.value }));
+                websocket.send(JSON.stringify({ id: "offset-CH2", data: this.value }));
             });
 
             document.getElementById('sliderTrigger').addEventListener('input', function() {
                 if (showTrigger){
-                    data.series[4] = Array(10).fill(this.value);
+                    data.series[4] = [{ x: 0, y: this.value}, { x: 10, y: this.value}];
                     chart.update();
                 }
+                websocket.send(JSON.stringify({ id: "trigger", data: this.value }));
             });
 
             document.getElementById('start').addEventListener('click', function() {
@@ -348,24 +376,27 @@
                     this.classList.remove('btn-success');
                     this.classList.add('btn-danger');
                     this.innerHTML = 'stop';
-                    websocket.send(JSON.stringify({ type: "trigger", value: "start" }));
+                    websocket.send(JSON.stringify({ id: "trigger-run", data: "start" }));
                 }
                 else{
                     this.classList.remove('btn-danger');
                     this.classList.add('btn-success');
                     this.innerHTML = 'start';
-                    websocket.send(JSON.stringify({ type: "trigger", value: "stop" }));
+                    websocket.send(JSON.stringify({ id: "trigger-run", data: "stop" }));
                 }
             });
-        }
-        
-        function ping() {
-            websocket.send('__ping__');
-            tm = setTimeout(function () { }, 5000);
-        }
 
-        function pong() {
-            clearTimeout(tm);
+            document.getElementById('mode').addEventListener('change', function() {
+                websocket.send(JSON.stringify({ id: "trigger-mode", data: this.value}));
+            });
+
+            document.getElementById('edge').addEventListener('change', function() {
+                websocket.send(JSON.stringify({ id: "trigger-edge", data: this.value}));
+            });
+
+            document.getElementById('channel').addEventListener('change', function() {
+                websocket.send(JSON.stringify({ id: "trigger-channel", data: this.value}));
+            });
         }
 
         //callbacks for socket communication
@@ -375,13 +406,11 @@
             websocket.onopen = onOpen;
             websocket.onclose = onClose;
             websocket.onmessage = onMessage;
-            websoket.on()
         }
 
         //request all data when socket opens
         function onOpen(event) {
             console.log('Connection opened');
-            setInterval(ping, 2000);
             //anfrage für IO werte stellen
             //var msg = { data: "getAll" };
             //websocket.send(JSON.stringify(msg));
@@ -401,20 +430,15 @@
 
         //recived new message through websocket
         function onMessage(event) {
-            if (event.data == '__pong__') {
-                pong();
-                return;
-            } else{
-                console.log(event.data);
-                var recivedData = JSON.parse(event.data);
-                //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
-                console.log(recivedData.CH1);
-                console.log(recivedData.CH2);
-                if (showCH1) {data.series[0] = recivedData.CH1;}
-                if (showCH2) {data.series[2] = recivedData.CH2;}
-                //if (recivedData.status = "battery"){updateBattery(recivedData.level, recivedData.charging);}
-                chart.update();
-            }
+            //console.log(event.data);
+            var recivedData = JSON.parse(event.data);
+            //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
+            //console.log(recivedData.CH1);
+            //console.log(recivedData.CH2);
+            if (showCH1) {data.series[0] = recivedData.CH1;}
+            if (showCH2) {data.series[2] = recivedData.CH2;}
+            if (recivedData.hasOwnProperty("battery")){updateBattery(recivedData.level, recivedData.charging);}
+            chart.update();
         }
 
         //callback when website gets loaded and closed
@@ -423,7 +447,7 @@
 
         //init all when loading side
         function onLoad(event) {
-            initWebSocket();
+            //initWebSocket();
             initElements();
         }
 
