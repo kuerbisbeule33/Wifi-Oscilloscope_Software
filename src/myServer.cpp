@@ -1,9 +1,9 @@
 #include "myServer.h"
 #include "myConversion.h"
-#include "myFiles.h"
 
 AsyncWebServer webServer(80);
 AsyncWebSocket ws("/ws");
+DNSServer dnsServer;//redirect to website on wifi connection
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
     //callback for event of socket
@@ -41,17 +41,35 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
 
     }
     else if (id == "offset-CH1"){
-
+        dacWrite(DAC_CH1, (uint8_t)data.toInt());
     }
     else if (id == "offset-CH2"){
-
+        dacWrite(DAC_CH2, (uint8_t)data.toInt());
     }
     else if (id == "trigger"){
-
+        triggerDac.setVoltage((uint16_t)data.toInt());
+    }
+    else if (id == "gain-CH1"){
+        expander.setGain((uint8_t)data.toInt(), 1);
+    }
+    else if (id == "gain-CH2"){
+        expander.setGain((uint8_t)data.toInt(), 2);
     }
     Serial.println("id: " + id + " | data: " + data);
 }
 
+//converts msg string from Socket to id and data
+void msgToDataPair(uint8_t *msg, String &id, String &data){
+    //static json on stack is faster and has lower overhead
+    //only works for small data
+    StaticJsonDocument<256> doc;
+    deserializeJson(doc, msg);
+    //get identiver and data of recived message
+    String idTemp = doc["id"];
+    id = idTemp;
+    String dataTemp = doc["data"];
+    data = dataTemp;
+}
 
 void initHttpRequests() {
     //requested file not there error
