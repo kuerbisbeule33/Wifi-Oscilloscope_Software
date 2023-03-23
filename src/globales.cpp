@@ -27,3 +27,6 @@ const IPAddress gateway(192, 168, 0,1);//mostly router address
 const IPAddress subnetMask(255, 255, 255, 0);
 const char *apSsid = "Oscilloscope";
 const char *apPasswort = "Oscilloscope";
+
+TRIGGER_MODE_E trigger = stopTrig;
+TRIGGER_EDGE_E edge = falling;
