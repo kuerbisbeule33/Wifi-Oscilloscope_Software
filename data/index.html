@@ -471,12 +471,10 @@
             //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
             //console.log(recivedData.CH1);
             //console.log(recivedData.CH2);
-            if (recivedData.hasOwnProperty("battery")){updateBattery(recivedData.battery[0], recivedData.battery[1]);}
-            else{
-                if (showCH1) {data.series[0] = recivedData.CH1;}
-                if (showCH2) {data.series[2] = recivedData.CH2;}
-                chart.update();
-            }
+            if (recivedData.hasOwnProperty("CH1") && showCH1) {data.series[0] = recivedData;}
+            else if (recivedData.hasOwnProperty("CH2") && showCH2) {data.series[2] = recivedData;}
+            else if (recivedData.hasOwnProperty("battery")) {updateBattery(recivedData.battery[0], recivedData.battery[1]);}
+            chart.update();
         }
 
         //callback when website gets loaded and closed
