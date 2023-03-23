@@ -4,42 +4,170 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
+#include <Wire.h>
+#include <Adafruit_MAX1704X.h>
+#include <MCP4726.h>
+#include <driver/ledc.h>
+
+#include "BufferedAdcSampler.h"
+#include "globales.h"
 #include "myServer.h"
-#include "myConversion.h"
+#include "myExpander.h"
 
-//wifi configuration
-const IPAddress apIp(192, 168, 0, 1);//ip to access webserver when access point
-const IPAddress gateway(192, 168, 0,1);//mostly router address
-const IPAddress subnetMask(255, 255, 255, 0);
-const char *apSsid = "Oscilloscope";
-const char *apPasswort = "Oscilloscope";
+#define DEBUG_LOG_ENABLE
 
-DNSServer dnsServer;
-String user_name;
-String proficiency;
-bool name_received = false;
-bool proficiency_received = false;
+const int XCLK = 32;
+const int PCLK = 33;
+const int trigIN = 25;
 
-class CaptiveRequestHandler : public AsyncWebHandler
+const int D_inputs[10] = {27,17,16,15,14,13,12,4,32,33};
+
+#ifdef DEBUG_LOG_ENABLE
+  #define DEBUG_PRINTLN(a) Serial.println(a)
+  #define DEBUG_PRINT(a) Serial.print(a)
+  #define DEBUG_PRINTLNF(a, f) Serial.println(a, f)
+  #define DEBUG_PRINTF(a, f) Serial.print(a, f)
+#else
+  #define DEBUG_PRINTLN(a)
+  #define DEBUG_PRINT(a)
+  #define DEBUG_PRINTLNF(a, f)
+  #define DEBUG_PRINTF(a, f)
+#endif
+
+typedef enum {falling = 0, rising = 1} TRIGGER_EDGE_E;
+typedef enum {stopTrig = 0, noneTrig = 1, autoTrig = 2, singleTrig = 3} TRIGGER_MODE_E;
+TRIGGER_MODE_E trigger = stopTrig;
+TRIGGER_EDGE_E edge = falling;
+//const char * triggerTexts[4] = {"stop\0", "none\0","auto\0","single\0"};
+//const int triggerEdgeConfig[2] = {FALLING, RISING};
+I2S_AdcSampler adcSampler;
+char str[50000];
+bool bufferIsFilled = false;
+portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+
+bool ClockEnable(int pin, int Hz)
 {
-public:
-  CaptiveRequestHandler() {}
-  virtual ~CaptiveRequestHandler() {}
-  bool canHandle(AsyncWebServerRequest *request)
-  {
-    request->addInterestingHeader("ANY");
-    return true;
-  }
-  void handleRequest(AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/index.html", "text/html");
-  }
-};
+    periph_module_enable(PERIPH_LEDC_MODULE);
 
-float sin1[10] = {0, 1, 2, 1, 0, -1, -2, -1, 0, 1};
-float cos1[10] = {2, 1, 0, -1, -2, -1, 0, 1, 2, 1};
-uint32_t start;
-bool sinState = false;
+    ledc_timer_config_t timer_conf;
+    timer_conf.bit_num = (ledc_timer_bit_t)1;
+    timer_conf.freq_hz = Hz;
+    timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+    timer_conf.timer_num = LEDC_TIMER_0;
+    esp_err_t err = ledc_timer_config(&timer_conf);
+    if (err != ESP_OK) {
+        return false;
+    }
+
+    ledc_channel_config_t ch_conf;
+    ch_conf.channel = LEDC_CHANNEL_0;
+    ch_conf.timer_sel = LEDC_TIMER_0;
+    ch_conf.intr_type = LEDC_INTR_DISABLE;
+    ch_conf.duty = 1;
+    ch_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
+    ch_conf.gpio_num = pin;
+	ch_conf.hpoint = 0;
+    err = ledc_channel_config(&ch_conf);
+    if (err != ESP_OK) {
+        return false;
+    }
+    return true;
+}
+
+void ClockDisable()
+{
+    periph_module_disable(PERIPH_LEDC_MODULE);
+}
+
+//trigger interrupt handler (we detect falling edge)
+void IRAM_ATTR handleInterrupt() {
+  portENTER_CRITICAL_ISR(&mux);
+  detachInterrupt(trigIN);
+  adcSampler.stopNonBlocking(1);
+  DEBUG_PRINTLN("Trigger detected!");
+  portEXIT_CRITICAL_ISR(&mux);
+}
+
+/* send data points in responce to "/scope" request */
+void updateADC() {
+	//check if we already have the data
+	if((I2S_AdcSampler::READY == adcSampler.state()) &&	(trigger != stopTrig))
+	{
+	  int strPointer = 0;
+	  uint16_t samplesCount = 0;
+
+		//the value before first comma is name of current trigger selected.
+		//strPointer += sprintf(&str[strPointer], "%s,", triggerTexts[trigger]);
+
+		//trigger fired, we have data in the buffer
+		switch (trigger) {
+			case autoTrig:
+				//buffer is already filled with data
+				samplesCount = adcSampler.samplesNumber();
+				DEBUG_PRINTLN("Buffer filled");
+				break;
+			case singleTrig:
+				//buffer is already filled with data
+				samplesCount = adcSampler.samplesNumber();
+				trigger = stopTrig;//stop data acquisition
+				DEBUG_PRINTLN("Buffer filled. Stop data acquisition");
+				break;
+			case noneTrig:
+				//buffer is already filled with data
+				samplesCount = adcSampler.samplesNumber();
+				DEBUG_PRINTLN("Buffer filled");
+				break;
+			default: //unknown trigger
+				samplesCount = 0;
+				break;
+		}
+		//fill the buff with samples converted from bin to str
+		for(uint16_t samplePointer = 0; samplePointer < samplesCount; samplePointer++) {
+			strPointer += sprintf(&str[strPointer], "%u,", adcSampler.readSample(samplePointer));
+			if(strPointer > sizeof(str)) {
+				str[sizeof(str) - 1] = 0;
+				break; //to prevent buffer overflow
+			}
+		}
+		//start/restart data acquisition if needed
+		if((autoTrig == trigger) || (singleTrig == trigger) || (noneTrig == trigger)) {
+			DEBUG_PRINTLN("Repeat data acquisition");
+			adcSampler.start(); //start data acquisition if needed
+			if(noneTrig == trigger) {
+				adcSampler.stopNonBlocking(3); //request acquisition stop after adc buffers are filled
+			} else {
+				DEBUG_PRINTLN("Wait for the next trigger");
+				//GPIO.status_w1tc = BIT(trigIN); //clear interrupt flag
+				attachInterrupt(digitalPinToInterrupt(trigIN), handleInterrupt, triggerEdgeConfig[edge]);
+			}
+		}
+	} else {
+		if (stopTrig != trigger) {
+			if (I2S_AdcSampler::STOPPED == adcSampler.state()) {
+				//the value before first comma is name of current trigger selected.
+				strPointer += sprintf(&str[strPointer], "%s,", triggerTexts[trigger]);
+				//We still waiting for trigger. Add one zero dot for empty plot
+				strPointer += sprintf(&str[strPointer], "%s,", "0");
+				DEBUG_PRINTLN("Start data acquisition");
+				adcSampler.start(); //start data acquisition if needed
+				//request acquisition stop after adc buffers are filled
+				if(noneTrig == trigger) {
+					adcSampler.stopNonBlocking(3);
+				} else {
+					//GPIO.status_w1tc = BIT(trigIN); //clear interrupt flag
+					attachInterrupt(digitalPinToInterrupt(trigIN), handleInterrupt, triggerEdgeConfig[edge]);
+				}
+			}
+		} else {
+			//the value before first comma is name of current trigger selected.
+			strPointer += sprintf(&str[strPointer], "%s,", triggerTexts[trigger]);
+			//We still waiting for trigger. Add one zero dot for empty plot
+			strPointer += sprintf(&str[strPointer], "%s,", "0");
+		}
+	}
+	/* respond to the request */
+	server.send(200, "text/plain", str);
+}
 
 void setup()
 {
@@ -65,8 +193,9 @@ void setup()
   webServer.begin();
   Serial.println("All Done!");
 
-  //test code
-  start = millis();
+  //other peripherals
+  lipo.begin();
+  triggerDac.begin(MCP4726_DEFAULT_ADDR);
 }
 
 void loop()
@@ -74,7 +203,24 @@ void loop()
   dnsServer.processNextRequest();
   ws.cleanupClients();
 
+  //lipo and expander update
+  bool charging = expander.update();
+  float newCellPercent = lipo.cellPercent();
+  if (newCellPercent != cellPercent){
+    StaticJsonDocument<128> doc;
+    JsonArray jsonArray = doc.createNestedArray("battery");
+    jsonArray.add(newCellPercent);
+    jsonArray.add(charging);
+    String msg;
+    serializeJson(doc, msg);
+    ws.textAll(msg);
+  }
+  cellPercent = newCellPercent;
+
+
+
   //test code
+  /*
   if (millis() - start > 1000){
     start = millis();
     jsonDoc.clear();
@@ -102,4 +248,5 @@ void loop()
 
     ws.textAll(msg);
   }
+  */
 }

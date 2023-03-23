@@ -9,7 +9,7 @@
     <script src="bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="chartist.min.css">
     <script src="chartist.min.js"></script>
-    <link rel="icon" href="logo.ico" type="image/png">
+    <link rel="icon" href="logo.png" type="image/png">
     <title>oscilloscope</title>
 
     <style>
@@ -90,7 +90,7 @@
     <!-- navbar -->
     <nav class="navbar sticky-top navbar-expand-sm navbar-dark bg-dark">
         <span class="navbar-brand mb-0 h1">
-            <img src="logo.ico" width="30" height="30" class="d-inline-block align-top" alt="">
+            <img src="logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
             oszilloskop
         </span>
         </div>
@@ -179,18 +179,30 @@
                             <div class="row mt-2">
                                 <label for="exampleFormControlSelect1" class="col-4 col-form-label">CH1</label>
                                 <div class="col-8">
-                                    <select class="form-control" id="exampleFormControlSelect1">
-                                        <option>1V/div</option>
-                                        <option>2V/div</option>
+                                    <select class="form-control" id="gainCH1">
+                                        <option value="1">1V/div</option>
+                                        <option value="2">500mV/div</option>
+                                        <option value="4">250mV/div</option>
+                                        <option value="5">200mV/div</option>
+                                        <option value="8">125mV/div</option>
+                                        <option value="10">100mV/div</option>
+                                        <option value="16">62,5mV/div</option>
+                                        <option value="32">31,25mV/div</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="row mt-2">
                                 <label for="exampleFormControlSelect1" class="col-4 col-form-label">CH2</label>
                                 <div class="col-8">
-                                    <select class="form-control" id="exampleFormControlSelect1">
-                                        <option>1V/div</option>
-                                        <option>2V/div</option>
+                                    <select class="form-control" id="gainCH2">
+                                        <option value="1">1V/div</option>
+                                        <option value="2">500mV/div</option>
+                                        <option value="4">250mV/div</option>
+                                        <option value="5">200mV/div</option>
+                                        <option value="8">125mV/div</option>
+                                        <option value="10">100mV/div</option>
+                                        <option value="16">62,5mV/div</option>
+                                        <option value="32">31,25mV/div</option>
                                     </select>
                                 </div>
                             </div>
@@ -212,12 +224,12 @@
                             <div class="row m-2">
                                 <div class="d-inline">CH1</div>
                                 <div class="custom-control custom-radio custom-control-inline ml-auto">
-                                    <input checked type="radio" id="CH1_1:1" name="CH1_1:1"
+                                    <input checked type="radio" id="CH1_1:1" name="radioCH1"
                                         class="custom-control-input">
                                     <label class="custom-control-label" for="CH1_1:1">1:1</label>
                                 </div>
                                 <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" id="CH1_10:1" name="CH1_10:1"
+                                    <input type="radio" id="CH1_10:1" name="radioCH1"
                                         class="custom-control-input">
                                     <label class="custom-control-label" for="CH1_10:1">10:1</label>
                                 </div>
@@ -225,12 +237,12 @@
                             <div class="row ml-2 mr-2">
                                 <div class="d-inline">CH2</div>
                                 <div class="custom-control custom-radio custom-control-inline ml-auto">
-                                    <input checked type="radio" id="CH2_1:1" name="CH2_1:1"
+                                    <input checked type="radio" id="CH2_1:1" name="radioCH2"
                                         class="custom-control-input">
                                     <label class="custom-control-label" for="CH2_1:1">1:1</label>
                                 </div>
                                 <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" id="CH2_10:1" name="CH2_10:1"
+                                    <input type="radio" id="CH2_10:1" name="radioCH2"
                                         class="custom-control-input">
                                     <label class="custom-control-label" for="CH2_10:1">10:1</label>
                                 </div>
@@ -295,7 +307,7 @@
             }
         };
         
-        var data = {series: [[], [], [], [], []]};
+        var data = {series: [[], [{ x: 0, y: 0}, { x: 10, y: 0}], [], [{ x: 0, y: 0}, { x: 10, y: 0}], [{ x: 0, y: 0}, { x: 10, y: 0}]]};
         
         var chart = new Chartist.Line('.ct-chart', data, options);
 
@@ -397,6 +409,32 @@
             document.getElementById('channel').addEventListener('change', function() {
                 websocket.send(JSON.stringify({ id: "trigger-channel", data: this.value}));
             });
+
+            document.getElementById('gainCH1').addEventListener('change', function() {
+                websocket.send(JSON.stringify({ id: "gain-CH1", data: this.value}));
+            });
+
+            document.getElementById('gainCH2').addEventListener('change', function() {
+                websocket.send(JSON.stringify({ id: "gain-CH2", data: this.value}));
+            });
+            
+            document.getElementById('CH1_1:1').addEventListener('change', function() {
+                if (this.checked){
+                    websocket.send(JSON.stringify({ id: "CH1-Probe", data: 10.0}));
+                }
+                else{
+                    websocket.send(JSON.stringify({ id: "CH1-Probe", data: 1.0}));
+                }
+            });
+
+            document.getElementById('CH2_1:1').addEventListener('change', function() {
+                if (this.checked){
+                    websocket.send(JSON.stringify({ id: "CH2-Probe", data: 10.0}));
+                }
+                else{
+                    websocket.send(JSON.stringify({ id: "CH2-Probe", data: 1.0}));
+                }
+            });
         }
 
         //callbacks for socket communication
@@ -435,10 +473,12 @@
             //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
             //console.log(recivedData.CH1);
             //console.log(recivedData.CH2);
-            if (showCH1) {data.series[0] = recivedData.CH1;}
-            if (showCH2) {data.series[2] = recivedData.CH2;}
-            if (recivedData.hasOwnProperty("battery")){updateBattery(recivedData.level, recivedData.charging);}
-            chart.update();
+            if (recivedData.hasOwnProperty("battery")){updateBattery(recivedData.battery[0], recivedData.battery[1]);}
+            else{
+                if (showCH1) {data.series[0] = recivedData.CH1;}
+                if (showCH2) {data.series[2] = recivedData.CH2;}
+                chart.update();
+            }
         }
 
         //callback when website gets loaded and closed

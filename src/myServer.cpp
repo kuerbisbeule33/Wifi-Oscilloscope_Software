@@ -1,5 +1,4 @@
 #include "myServer.h"
-#include "myConversion.h"
 
 AsyncWebServer webServer(80);
 AsyncWebSocket ws("/ws");
@@ -41,19 +40,28 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
 
     }
     else if (id == "offset-CH1"){
-        dacWrite(DAC_CH1, (uint8_t)data.toInt());
+        double valNorm = data.toDouble() * 255.0 /  MAX_VAL;
+        dacWrite(DAC_CH1, (uint8_t)valNorm);
     }
     else if (id == "offset-CH2"){
-        dacWrite(DAC_CH2, (uint8_t)data.toInt());
+        double valNorm = data.toDouble() * 255.0 /  MAX_VAL;
+        dacWrite(DAC_CH2, (uint8_t)valNorm);
     }
     else if (id == "trigger"){
-        triggerDac.setVoltage((uint16_t)data.toInt());
+        double valNorm = data.toDouble() * 4096.0 /  MAX_VAL;
+        triggerDac.setVoltage((uint16_t)valNorm);
     }
     else if (id == "gain-CH1"){
         expander.setGain((uint8_t)data.toInt(), 1);
     }
     else if (id == "gain-CH2"){
         expander.setGain((uint8_t)data.toInt(), 2);
+    }
+    else if (id == "CH1-Probe"){
+        PRESCALER_CH1 = data.toDouble();
+    }
+    else if (id == "CH2-Probe"){
+        PRESCALER_CH2 = data.toDouble();
     }
     Serial.println("id: " + id + " | data: " + data);
 }
@@ -97,6 +105,6 @@ void initHttpRequests() {
     webServer.on("/chartist.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(SPIFFS, "/chartist.min.js", "text/js"); });
     // images
-    webServer.on("/logo.ico", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/logo.ico", "image/ico"); });
+    webServer.on("/logo.png", HTTP_GET, [](AsyncWebServerRequest *request)
+               { request->send(SPIFFS, "/logo.png", "image/png"); });
 }
