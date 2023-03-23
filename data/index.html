@@ -4,9 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="jquery-3.6.3.min.js"></script>
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
-    <script src="bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="chartist.min.css">
     <script src="chartist.min.js"></script>
     <link rel="icon" href="logo.png" type="image/png">
@@ -122,13 +120,13 @@
                             <h5 class="text-center">Aquisition</h5>
                             <button class="btn btn-danger btn-block mt-2" id="start">stop</button>
                             <select class="custom-select mt-2" id="mode">
-                                <option value="single">single shot</option>
-                                <option value="continues">continues</option>
-                                <option value="none" selected="selected">none</option>
+                                <option value="3">single shot</option>
+                                <option value="2">continues</option>
+                                <option value="1" selected="selected">none</option>
                             </select>
                             <select class="custom-select mt-2" id="edge">
-                                <option selected value="rising">rising edge</option>
-                                <option value="faling">falling edge</option>
+                                <option selected value="0">falling edge</option>
+                                <option value="1">rising edge</option>
                             </select>
                             <select class="custom-select mt-2" id="channel">
                                 <option value="CH1">CH1</option>
@@ -294,8 +292,8 @@
                 showLabel: false,
                 type : Chartist.FixedScaleAxis,
                 low : 0,
-                high : 10,
-                ticks : [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                high : 30,
+                ticks : [ 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
             },
             axisY: {
                 offset: 0,
@@ -307,7 +305,7 @@
             }
         };
         
-        var data = {series: [[], [{ x: 0, y: 0}, { x: 10, y: 0}], [], [{ x: 0, y: 0}, { x: 10, y: 0}], [{ x: 0, y: 0}, { x: 10, y: 0}]]};
+        var data = {series: [[], [{ x: 0, y: 0}, { x: 30, y: 0}], [], [{ x: 0, y: 0}, { x: 30, y: 0}], [{ x: 0, y: 0}, { x: 30, y: 0}]]};
         
         var chart = new Chartist.Line('.ct-chart', data, options);
 
@@ -337,7 +335,7 @@
                 if (this.checked) {
                     showCH2 = true;
                     var val = document.getElementById('sliderCH2').value;
-                    var line = [{ x: 0, y: val}, { x: 10, y: val}];
+                    var line = [{ x: 0, y: val}, { x: 30, y: val}];
                     data.series[3] = line;
                 } else {
                     showCH2 = false; 
@@ -351,7 +349,7 @@
                 if (this.checked) {
                     showTrigger = true;
                     var val = document.getElementById('sliderTrigger').value;
-                    var line = [{ x: 0, y: val}, { x: 10, y: val}];
+                    var line = [{ x: 0, y: val}, { x: 30, y: val}];
                 } else {
                     showTrigger = false; 
                     data.series[4] = [];
@@ -361,7 +359,7 @@
 
             document.getElementById('sliderCH1').addEventListener('input', function() {
                 if (showTrigger){
-                    data.series[1] = [{ x: 0, y: this.value}, { x: 10, y: this.value}];
+                    data.series[1] = [{ x: 0, y: this.value}, { x: 30, y: this.value}];
                     chart.update();
                 }
                 websocket.send(JSON.stringify({ id: "offset-CH1", data: this.value }));
@@ -369,7 +367,7 @@
 
             document.getElementById('sliderCH2').addEventListener('input', function() {
                 if (showTrigger){
-                    data.series[3] = [{ x: 0, y: this.value}, { x: 10, y: this.value}];
+                    data.series[3] = [{ x: 0, y: this.value}, { x: 30, y: this.value}];
                     chart.update();
                 }
                 websocket.send(JSON.stringify({ id: "offset-CH2", data: this.value }));
@@ -377,7 +375,7 @@
 
             document.getElementById('sliderTrigger').addEventListener('input', function() {
                 if (showTrigger){
-                    data.series[4] = [{ x: 0, y: this.value}, { x: 10, y: this.value}];
+                    data.series[4] = [{ x: 0, y: this.value}, { x: 30, y: this.value}];
                     chart.update();
                 }
                 websocket.send(JSON.stringify({ id: "trigger", data: this.value }));
