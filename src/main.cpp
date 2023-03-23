@@ -14,30 +14,16 @@
 #include "myServer.h"
 #include "myExpander.h"
 
-#define DEBUG_LOG_ENABLE
+const int XCLK = 27;
+const int PCLK = 26;
+const int trig1IN = 15;
+const int trig2IN = 13;
+int trigIN = 15;
+ 
 
-const int XCLK = 32;
-const int PCLK = 33;
-const int trigIN = 25;
+const int D_inputs[16] = {23,19,18,5,17,16,4,2,36,39,34,35,32,33,14,12}; //first byte ch1 / second byte ch2
 
-const int D_inputs[10] = {27,17,16,15,14,13,12,4,32,33};
 
-#ifdef DEBUG_LOG_ENABLE
-  #define DEBUG_PRINTLN(a) Serial.println(a)
-  #define DEBUG_PRINT(a) Serial.print(a)
-  #define DEBUG_PRINTLNF(a, f) Serial.println(a, f)
-  #define DEBUG_PRINTF(a, f) Serial.print(a, f)
-#else
-  #define DEBUG_PRINTLN(a)
-  #define DEBUG_PRINT(a)
-  #define DEBUG_PRINTLNF(a, f)
-  #define DEBUG_PRINTF(a, f)
-#endif
-
-typedef enum {falling = 0, rising = 1} TRIGGER_EDGE_E;
-typedef enum {stopTrig = 0, noneTrig = 1, autoTrig = 2, singleTrig = 3} TRIGGER_MODE_E;
-TRIGGER_MODE_E trigger = stopTrig;
-TRIGGER_EDGE_E edge = falling;
 //const char * triggerTexts[4] = {"stop\0", "none\0","auto\0","single\0"};
 //const int triggerEdgeConfig[2] = {FALLING, RISING};
 I2S_AdcSampler adcSampler;
@@ -66,7 +52,7 @@ bool ClockEnable(int pin, int Hz)
     ch_conf.duty = 1;
     ch_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
     ch_conf.gpio_num = pin;
-	ch_conf.hpoint = 0;
+	  ch_conf.hpoint = 0;
     err = ledc_channel_config(&ch_conf);
     if (err != ESP_OK) {
         return false;
@@ -80,7 +66,7 @@ void ClockDisable()
 }
 
 //trigger interrupt handler (we detect falling edge)
-void IRAM_ATTR handleInterrupt() {
+  void IRAM_ATTR handleInterrupt() {
   portENTER_CRITICAL_ISR(&mux);
   detachInterrupt(trigIN);
   adcSampler.stopNonBlocking(1);
@@ -90,11 +76,12 @@ void IRAM_ATTR handleInterrupt() {
 
 /* send data points in responce to "/scope" request */
 void updateADC() {
-	//check if we already have the data
+  int strPointer = 0;
+	uint16_t samplesCount = 0;
+  uint16_t samplePointer = 0;
+  //check if we already have the data
 	if((I2S_AdcSampler::READY == adcSampler.state()) &&	(trigger != stopTrig))
 	{
-	  int strPointer = 0;
-	  uint16_t samplesCount = 0;
 
 		//the value before first comma is name of current trigger selected.
 		//strPointer += sprintf(&str[strPointer], "%s,", triggerTexts[trigger]);
@@ -102,6 +89,7 @@ void updateADC() {
 		//trigger fired, we have data in the buffer
 		switch (trigger) {
 			case autoTrig:
+        sprintf;
 				//buffer is already filled with data
 				samplesCount = adcSampler.samplesNumber();
 				DEBUG_PRINTLN("Buffer filled");
@@ -138,14 +126,12 @@ void updateADC() {
 			} else {
 				DEBUG_PRINTLN("Wait for the next trigger");
 				//GPIO.status_w1tc = BIT(trigIN); //clear interrupt flag
-				attachInterrupt(digitalPinToInterrupt(trigIN), handleInterrupt, triggerEdgeConfig[edge]);
+				attachInterrupt(digitalPinToInterrupt(trigIN), handleInterrupt, edge);
 			}
 		}
 	} else {
 		if (stopTrig != trigger) {
 			if (I2S_AdcSampler::STOPPED == adcSampler.state()) {
-				//the value before first comma is name of current trigger selected.
-				strPointer += sprintf(&str[strPointer], "%s,", triggerTexts[trigger]);
 				//We still waiting for trigger. Add one zero dot for empty plot
 				strPointer += sprintf(&str[strPointer], "%s,", "0");
 				DEBUG_PRINTLN("Start data acquisition");
@@ -155,18 +141,14 @@ void updateADC() {
 					adcSampler.stopNonBlocking(3);
 				} else {
 					//GPIO.status_w1tc = BIT(trigIN); //clear interrupt flag
-					attachInterrupt(digitalPinToInterrupt(trigIN), handleInterrupt, triggerEdgeConfig[edge]);
+					attachInterrupt(digitalPinToInterrupt(trigIN), handleInterrupt, edge);
 				}
 			}
 		} else {
-			//the value before first comma is name of current trigger selected.
-			strPointer += sprintf(&str[strPointer], "%s,", triggerTexts[trigger]);
 			//We still waiting for trigger. Add one zero dot for empty plot
 			strPointer += sprintf(&str[strPointer], "%s,", "0");
 		}
 	}
-	/* respond to the request */
-	server.send(200, "text/plain", str);
 }
 
 void setup()
@@ -196,12 +178,14 @@ void setup()
   //other peripherals
   lipo.begin();
   triggerDac.begin(MCP4726_DEFAULT_ADDR);
+
 }
 
 void loop()
 {
   dnsServer.processNextRequest();
   ws.cleanupClients();
+  
 
   //lipo and expander update
   bool charging = expander.update();
@@ -216,6 +200,8 @@ void loop()
     ws.textAll(msg);
   }
   cellPercent = newCellPercent;
+  // check if buffer is full
+
 
 
 

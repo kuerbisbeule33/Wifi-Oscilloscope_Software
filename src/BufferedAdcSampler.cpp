@@ -210,16 +210,16 @@ void I2S_AdcSampler::i2sRun()
 }
 
 //we record 10bit samples
-bool I2S_AdcSampler::init(const int XCLK, const int PCLK, const int Din[10])
+bool I2S_AdcSampler::init(const int XCLK, const int PCLK, const int Din[16])
 {
 	initDmaDescriptors();
 	i2sInit(PCLK, Din);
 	return true;
 }
 
-bool I2S_AdcSampler::i2sInit(const int PCLK, const int Din[10])
+bool I2S_AdcSampler::i2sInit(const int PCLK, const int Din[16])
 {
-  int pins[] = {PCLK, Din[0], Din[1], Din[2], Din[3], Din[4], Din[5], Din[6], Din[7], Din[8], Din[9]};
+  int pins[] = {PCLK, Din[0], Din[1], Din[2], Din[3], Din[4], Din[5], Din[6], Din[7], Din[8], Din[9], Din[10], Din[11], Din[12], Din[13], Din[14], Din[15]};
   gpio_config_t conf = {
     .pin_bit_mask = 0,
     .mode = GPIO_MODE_INPUT,
@@ -243,12 +243,12 @@ bool I2S_AdcSampler::i2sInit(const int PCLK, const int Din[10])
     gpio_matrix_in(Din[7],    I2S0I_DATA_IN7_IDX, false);
     gpio_matrix_in(Din[8],    I2S0I_DATA_IN8_IDX, false);
     gpio_matrix_in(Din[9],    I2S0I_DATA_IN9_IDX, false);
-    gpio_matrix_in(0x30,  I2S0I_DATA_IN10_IDX, false);
-    gpio_matrix_in(0x30,  I2S0I_DATA_IN11_IDX, false);
-    gpio_matrix_in(0x30,  I2S0I_DATA_IN12_IDX, false);
-    gpio_matrix_in(0x30,  I2S0I_DATA_IN13_IDX, false);
-    gpio_matrix_in(0x30,  I2S0I_DATA_IN14_IDX, false);
-    gpio_matrix_in(0x30,  I2S0I_DATA_IN15_IDX, false);
+    gpio_matrix_in(Din[10],  I2S0I_DATA_IN10_IDX, false);
+    gpio_matrix_in(Din[11],  I2S0I_DATA_IN11_IDX, false);
+    gpio_matrix_in(Din[12],  I2S0I_DATA_IN12_IDX, false);
+    gpio_matrix_in(Din[13],  I2S0I_DATA_IN13_IDX, false);
+    gpio_matrix_in(Din[14],  I2S0I_DATA_IN14_IDX, false);
+    gpio_matrix_in(Din[15],  I2S0I_DATA_IN15_IDX, false);
 
     //for i2s in parallel camera input mode data is receiver only when V_SYNC = H_SYNC = H_ENABLE = 1. We don't use these inputs so simply set them High
     gpio_matrix_in(0x38, I2S0I_V_SYNC_IDX, false);
