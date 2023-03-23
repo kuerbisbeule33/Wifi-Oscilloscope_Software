@@ -26,11 +26,11 @@ const int D_inputs[16] = {23,19,18,5,17,16,4,2,36,39,34,35,32,33,14,12}; //first
 
 //const char * triggerTexts[4] = {"stop\0", "none\0","auto\0","single\0"};
 //const int triggerEdgeConfig[2] = {FALLING, RISING};
-I2S_AdcSampler adcSampler;
-char str[50000];
-bool bufferIsFilled = false;
-portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+//I2S_AdcSampler adcSampler;
+//bool bufferIsFilled = false;
+//portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
+/*
 bool ClockEnable(int pin, int Hz)
 {
     periph_module_enable(PERIPH_LEDC_MODULE);
@@ -73,8 +73,9 @@ void ClockDisable()
   DEBUG_PRINTLN("Trigger detected!");
   portEXIT_CRITICAL_ISR(&mux);
 }
-
+*/
 /* send data points in responce to "/scope" request */
+/*
 void updateADC() {
   int strPointer = 0;
 	uint16_t samplesCount = 0;
@@ -111,11 +112,11 @@ void updateADC() {
 		}
 		//fill the buff with samples converted from bin to str
 		for(uint16_t samplePointer = 0; samplePointer < samplesCount; samplePointer++) {
-			strPointer += sprintf(&str[strPointer], "%u,", adcSampler.readSample(samplePointer));
-			if(strPointer > sizeof(str)) {
-				str[sizeof(str) - 1] = 0;
-				break; //to prevent buffer overflow
-			}
+			//strPointer += sprintf(&str[strPointer], "%u,", adcSampler.readSample(samplePointer));
+			//if(strPointer > sizeof(str)) {
+			//	str[sizeof(str) - 1] = 0;
+			//	break; //to prevent buffer overflow
+			//}
 		}
 		//start/restart data acquisition if needed
 		if((autoTrig == trigger) || (singleTrig == trigger) || (noneTrig == trigger)) {
@@ -133,7 +134,7 @@ void updateADC() {
 		if (stopTrig != trigger) {
 			if (I2S_AdcSampler::STOPPED == adcSampler.state()) {
 				//We still waiting for trigger. Add one zero dot for empty plot
-				strPointer += sprintf(&str[strPointer], "%s,", "0");
+				//strPointer += sprintf(&str[strPointer], "%s,", "0");
 				DEBUG_PRINTLN("Start data acquisition");
 				adcSampler.start(); //start data acquisition if needed
 				//request acquisition stop after adc buffers are filled
@@ -146,10 +147,47 @@ void updateADC() {
 			}
 		} else {
 			//We still waiting for trigger. Add one zero dot for empty plot
-			strPointer += sprintf(&str[strPointer], "%s,", "0");
+			//strPointer += sprintf(&str[strPointer], "%s,", "0");
 		}
 	}
 }
+*/
+
+#define offset 8
+#define blockSize 25
+#define samples 300
+#define samplesPerSend 100
+
+void sendArray(uint8_t channel, int8_t* data, float scale, uint16_t length) {
+    static char sendString[blockSize * samples + offset + 10] = "{\"CH1\":[";
+    static uint8_t callFunctionCnt = 0;
+    uint8_t maxCallFunctionCnt = samples / samplesPerSend -1;
+    float deltaTime = 30.0/length;
+    sendString[4] = channel + '0';
+
+    
+    for (uint16_t i = 0; i < length; ++i) {
+      sprintf(sendString + i * blockSize + offset, "{\"x\":%5.2f,\"y\":%8.4f},", (float)(i+callFunctionCnt*samplesPerSend) * deltaTime, ((float)data[i+callFunctionCnt*samplesPerSend]) * scale);
+    }
+
+    sendString[length * blockSize + offset - 1] = ']';
+    sendString[length * blockSize + offset - 0] = '}';
+    sendString[length * blockSize + offset + 1] = '\n';
+    
+    //Serial.println(callFunctionCnt);
+    //Serial.println(sendString);
+    ws.textAll(sendString);
+
+    if (callFunctionCnt >= maxCallFunctionCnt) {
+      shouldStart = false;
+      callFunctionCnt = 0;
+    }
+    else{
+      ++callFunctionCnt;
+    }
+}
+
+int8_t dataArray[samples];
 
 void setup()
 {
@@ -176,9 +214,8 @@ void setup()
   Serial.println("All Done!");
 
   //other peripherals
-  lipo.begin();
-  triggerDac.begin(MCP4726_DEFAULT_ADDR);
-
+  //lipo.begin();
+  //triggerDac.begin(MCP4726_DEFAULT_ADDR);
 }
 
 void loop()
@@ -186,7 +223,10 @@ void loop()
   dnsServer.processNextRequest();
   ws.cleanupClients();
   
-
+  if (shouldStart == true){
+    sendArray(2, dataArray, 0.04, samples);
+  }
+  /*
   //lipo and expander update
   bool charging = expander.update();
   float newCellPercent = lipo.cellPercent();
@@ -201,38 +241,5 @@ void loop()
   }
   cellPercent = newCellPercent;
   // check if buffer is full
-
-
-
-
-  //test code
-  /*
-  if (millis() - start > 1000){
-    start = millis();
-    jsonDoc.clear();
-    JsonArray jsonArray = jsonDoc.createNestedArray("CH1");
-    for (int i = 0; i < 10; i++) {
-      if (sinState){
-        jsonArray.add(sin1[i]);
-      }
-      else{
-        jsonArray.add(cos1[i]);
-      }
-    }
-    sinState = not sinState;
-    JsonArray jsonArray2 = jsonDoc.createNestedArray("CH2");
-    for (int i = 0; i < 10; i++) {
-      if (sinState){
-        jsonArray2.add(sin1[i]);
-      }
-      else{
-        jsonArray2.add(cos1[i]);
-      }
-    }
-    String msg;
-    serializeJson(jsonDoc, msg);
-
-    ws.textAll(msg);
-  }
   */
 }

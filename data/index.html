@@ -466,13 +466,14 @@
 
         //recived new message through websocket
         function onMessage(event) {
-            //console.log(event.data);
+            console.log(event.data);
             var recivedData = JSON.parse(event.data);
+            //console.log(recivedData);
             //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
             //console.log(recivedData.CH1);
             //console.log(recivedData.CH2);
-            if (recivedData.hasOwnProperty("CH1") && showCH1) {data.series[0] = recivedData;}
-            else if (recivedData.hasOwnProperty("CH2") && showCH2) {data.series[2] = recivedData;}
+            if (recivedData.hasOwnProperty("CH1") && showCH1) {data["CH1"] = recivedData;}
+            else if (recivedData.hasOwnProperty("CH2") && showCH2) {data["CH2"] = recivedData;}
             else if (recivedData.hasOwnProperty("battery")) {updateBattery(recivedData.battery[0], recivedData.battery[1]);}
             chart.update();
         }
@@ -483,7 +484,7 @@
 
         //init all when loading side
         function onLoad(event) {
-            //initWebSocket();
+            initWebSocket();
             initElements();
         }
 
