@@ -153,41 +153,72 @@ void updateADC() {
 }
 */
 
-#define offset 8
-#define blockSize 25
-#define samples 300
-#define samplesPerSend 100
-
-void sendArray(uint8_t channel, int8_t* data, float scale, uint16_t length) {
-    static char sendString[blockSize * samples + offset + 10] = "{\"CH1\":[";
-    static uint8_t callFunctionCnt = 0;
-    uint8_t maxCallFunctionCnt = samples / samplesPerSend -1;
-    float deltaTime = 30.0/length;
-    sendString[4] = channel + '0';
-
-    
-    for (uint16_t i = 0; i < length; ++i) {
-      sprintf(sendString + i * blockSize + offset, "{\"x\":%5.2f,\"y\":%8.4f},", (float)(i+callFunctionCnt*samplesPerSend) * deltaTime, ((float)data[i+callFunctionCnt*samplesPerSend]) * scale);
-    }
-
-    sendString[length * blockSize + offset - 1] = ']';
-    sendString[length * blockSize + offset - 0] = '}';
-    sendString[length * blockSize + offset + 1] = '\n';
-    
-    //Serial.println(callFunctionCnt);
-    //Serial.println(sendString);
-    ws.textAll(sendString);
-
-    if (callFunctionCnt >= maxCallFunctionCnt) {
-      shouldStart = false;
-      callFunctionCnt = 0;
-    }
-    else{
-      ++callFunctionCnt;
+int16_t testSamples[1500];
+void generateSamples(){
+    for (int i = 0; i<=100; i++){
+        testSamples[i] = (((int16_t)(127*sin(((2*PI)/100.0f)*i))) << 8) + ((int16_t)(100*cos(((2*PI)/100.0f)*i)));
     }
 }
 
-int8_t dataArray[samples];
+
+#define SendBlockOffset 8
+#define SendCharBlockSize 25
+#define samplesPerSend 50
+
+double scaleCH1 = 0.1f;
+double scaleCH2 = 0.1f;
+uint16_t sendOffset = 0;
+
+enum sendArraState {ready = 0, sendCH1 = 1, sendCH2 = 3};
+
+void sendArray(int16_t* data) {
+    static char sendString[SendCharBlockSize * (samplesPerSend+1) + SendBlockOffset + 10] = "{\"CH1\":[";
+    static float deltaTime = 30.0/samplesPerSend;
+    int8_t* dataArray = (int8_t*)data;
+    float val;
+
+    static sendArraState state = ready;
+    switch (state) {
+    case ready:
+      state = sendCH1;
+      break;
+    case sendCH1:
+      state = sendCH2;
+      sendString[4] = '1';
+      for (uint16_t i = 0; i < samplesPerSend +1; ++i) {
+        val = ((float)dataArray[i*2+sendOffset]) * scaleCH1;
+        if (val > 5){val = 5;}
+        if (val < -5){val = -5;}
+        sprintf(sendString + i * SendCharBlockSize + SendBlockOffset, "{\"x\":%5.2f,\"y\":%8.4f},", (float)(i) * deltaTime, val);
+      }
+      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
+      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
+      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\n';
+      ws.textAll(sendString);
+      break;
+    case sendCH2:
+      state = ready;
+      sendString[4] = '2';
+      for (uint16_t i = 0; i < samplesPerSend +1; ++i) {
+        val = ((float)dataArray[i*2+1+sendOffset]) * scaleCH2;
+        if (val > 5){val = 5;}
+        if (val < -5){val = -5;}
+        sprintf(sendString + i * SendCharBlockSize + SendBlockOffset, "{\"x\":%5.2f,\"y\":%8.4f},", (float)(i) * deltaTime, val);
+      }
+      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
+      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
+      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\n';
+      ws.textAll(sendString);
+
+      shouldStart = false;
+      break;
+    default:
+      state = ready;
+
+      shouldStart = false;
+      break;
+    }
+}
 
 void setup()
 {
@@ -216,6 +247,8 @@ void setup()
   //other peripherals
   //lipo.begin();
   //triggerDac.begin(MCP4726_DEFAULT_ADDR);
+
+  generateSamples();
 }
 
 void loop()
@@ -224,7 +257,8 @@ void loop()
   ws.cleanupClients();
   
   if (shouldStart == true){
-    sendArray(2, dataArray, 0.04, samples);
+
+    sendArray(testSamples);
   }
   /*
   //lipo and expander update
