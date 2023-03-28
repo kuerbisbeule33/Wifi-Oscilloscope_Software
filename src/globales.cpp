@@ -19,9 +19,9 @@ const uint8_t CHARGING = 6;
 //const uint8_t DAC_CH2 = 26;
 //MCP4726 triggerDac;
 
-double MAX_VAL = 5.0;
-double PRESCALER_CH1 = 1.0;
-double PRESCALER_CH2 = 1.0;
+const double MAX_VAL = 5.0f;
+uint16_t timeOffset = 0;
+int16_t testSamples[1500];
 
 //wifi configuration
 const IPAddress apIp(192, 168, 0, 1);//ip to access webserver when access point

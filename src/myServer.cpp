@@ -4,7 +4,75 @@ AsyncWebServer webServer(80);
 AsyncWebSocket ws("/ws");
 DNSServer dnsServer;//redirect to website on wifi connection
 
+void i8ToStringNoTermination(int8_t number, char* string, uint16_t startIndex) {
+    uint8_t minusIndex = 0;
+    bool negative = false;
+    bool firstIsSet = false;
+    string[startIndex] = ' ';
+    string[startIndex + 4] = ',';
+    // abs and save minus
+    if (number < 0) {
+        number = -number;
+        negative = true;
+    }
+    // 100 number
+    uint8_t val1 = number / 100;
+    if (val1 == 0) {
+        ++minusIndex;
+        string[startIndex + 1] = ' ';
+    }
+    else {
+        string[startIndex + 1] = val1 + '0';//erste stelle
+        firstIsSet = true;
+    }
+    // 10 number
+    number = number - val1 * 100;
+    uint8_t val2 = number / 10;
+    if (val2 == 0 && !firstIsSet) {
+        ++minusIndex;
+        string[startIndex + 2] = ' ';
+    }
+    else {
+        string[startIndex + 2] = val2 + '0';//zweite stelle
+    }
+    // 1 number
+    number = number - val2 * 10;
+    string[startIndex + 3] = number + '0';//dritte stelle
 
+    // minus, else fill empty
+    if (negative) {
+        string[startIndex + minusIndex] = '-';
+    }
+}
+
+#define SendBlockOffset 8
+#define SendCharBlockSize 5
+#define samplesPerSend 1500
+void sendArray(int16_t* data) {
+    static char sendString[SendCharBlockSize * samplesPerSend + SendBlockOffset + 10] = "{\"CH1\":[";
+    int8_t* dataArray = (int8_t*)data;
+    int8_t val;
+
+    sendString[4] = '1';
+    for (uint16_t i = 0; i < samplesPerSend; ++i) {
+        val = dataArray[i * 2 + timeOffset];
+        i8ToStringNoTermination(val, sendString, i * 5 + SendBlockOffset);
+    }
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\0';
+    ws.textAll(sendString);
+
+    sendString[4] = '2';
+    for (uint16_t i = 0; i < samplesPerSend; ++i) {
+        val = dataArray[i * 2 + 1 + timeOffset];
+        i8ToStringNoTermination(val, sendString, i * 5 + SendBlockOffset);
+    }
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\0';
+    ws.textAll(sendString);
+}
 
 //for small json conversion with identivier and data
 String toJsonString(String id, int16_t data){
@@ -48,7 +116,7 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
     TRIGGER_MODE_E lastTrigger;
     msgToDataPair(msg, id, data);
     if (id == "trigger-run"){   
-        shouldStart = true;  
+        sendArray(testSamples);  
         if (data == "start")
         {
             DEBUG_PRINTLN("ADC Sampler started with last trigger mode");
@@ -59,8 +127,7 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
             lastTrigger = trigger;
 	        trigger = stopTrig;
 	        //adcSampler.cancel(); //stop current mode as fast as possible
-        }
-            
+        }    
     }
     else if (id == "trigger-mode"){
         switch (data.toInt()){
@@ -80,7 +147,6 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
 	            //adcSampler.cancel(); //stop current mode as fast as possible
             break;
         }
-
     }
     else if (id == "trigger-edge"){
         switch (data.toInt()){
@@ -98,7 +164,6 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
             break;
 
         }
-
     }
     else if (id == "trigger-channel"){
         if (data == "CH1" ){
@@ -130,12 +195,6 @@ void handleWebSocketMessage(void *arg, uint8_t *msg, size_t len, uint32_t client
     else if (id == "gain-CH2"){
         //expander.setGain((uint8_t)data.toInt(), 2);
     }
-    else if (id == "CH1-Probe"){
-        PRESCALER_CH1 = data.toDouble();
-    }
-    else if (id == "CH2-Probe"){
-        PRESCALER_CH2 = data.toDouble();
-    }
     Serial.println("id: " + id + " | data: " + data);
 }
 
@@ -160,24 +219,26 @@ void initHttpRequests() {
     // website content
     // home and root
     webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/index.html", "text/html"); });
+               { request->send(LittleFS, "/index.html", "text/html"); });
     webServer.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/index.html", "text/html"); });
+               { request->send(LittleFS, "/index.html", "text/html"); });
+    webServer.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
+               { request->send(LittleFS, "/index.js", "text/js"); });
     // libraries
     // jquery
     webServer.on("/jquery-3.6.3.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/jquery-3.6.3.min.js", "text/js"); });
+               { request->send(LittleFS, "/jquery-3.6.3.min.js", "text/js"); });
     // bootstrap
     webServer.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/bootstrap.min.css", "text/css"); });
+               { request->send(LittleFS, "/bootstrap.min.css", "text/css"); });
     webServer.on("/bootstrap.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/bootstrap.min.js", "text/js"); });
+               { request->send(LittleFS, "/bootstrap.min.js", "text/js"); });
     // chartist
     webServer.on("/chartist.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/chartist.min.css", "text/css"); });
+               { request->send(LittleFS, "/chartist.min.css", "text/css"); });
     webServer.on("/chartist.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/chartist.min.js", "text/js"); });
+               { request->send(LittleFS, "/chartist.min.js", "text/js"); });
     // images
     webServer.on("/logo.png", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(SPIFFS, "/logo.png", "image/png"); });
+               { request->send(LittleFS, "/logo.png", "image/png"); });
 }

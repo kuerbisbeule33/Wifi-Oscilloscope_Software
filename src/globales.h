@@ -37,9 +37,9 @@ typedef enum {stopTrig = 0, noneTrig = 1, autoTrig = 2, singleTrig = 3} TRIGGER_
 extern TRIGGER_MODE_E trigger;
 extern TRIGGER_EDGE_E edge;
 
-extern double MAX_VAL;
-extern double PRESCALER_CH1;
-extern double PRESCALER_CH2;
+extern const double MAX_VAL;
+extern uint16_t timeOffset;
+extern int16_t testSamples[];
 
 //wifi configuration
 extern const IPAddress apIp;

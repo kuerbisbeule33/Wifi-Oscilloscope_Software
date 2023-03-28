@@ -4,7 +4,7 @@
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <DNSServer.h>
 #include "globales.h"
 
@@ -25,7 +25,7 @@ public:
   }
   void handleRequest(AsyncWebServerRequest *request)
   {
-    request->send(SPIFFS, "/index.html", "text/html");
+    request->send(LittleFS, "/index.html", "text/html");
   }
 };
 

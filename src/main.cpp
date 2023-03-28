@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <Wire.h>
 #include <Adafruit_MAX1704X.h>
 #include <MCP4726.h>
@@ -153,70 +153,14 @@ void updateADC() {
 }
 */
 
-int16_t testSamples[1500];
-void generateSamples(){
-    for (int i = 0; i<=100; i++){
-        testSamples[i] = (((int16_t)(127*sin(((2*PI)/100.0f)*i))) << 8) + ((int16_t)(100*cos(((2*PI)/100.0f)*i)));
-    }
-}
-
-
-#define SendBlockOffset 8
-#define SendCharBlockSize 25
-#define samplesPerSend 50
-
-double scaleCH1 = 0.1f;
-double scaleCH2 = 0.1f;
-uint16_t sendOffset = 0;
-
-enum sendArraState {ready = 0, sendCH1 = 1, sendCH2 = 3};
-
-void sendArray(int16_t* data) {
-    static char sendString[SendCharBlockSize * (samplesPerSend+1) + SendBlockOffset + 10] = "{\"CH1\":[";
-    static float deltaTime = 30.0/samplesPerSend;
-    int8_t* dataArray = (int8_t*)data;
-    float val;
-
-    static sendArraState state = ready;
-    switch (state) {
-    case ready:
-      state = sendCH1;
-      break;
-    case sendCH1:
-      state = sendCH2;
-      sendString[4] = '1';
-      for (uint16_t i = 0; i < samplesPerSend +1; ++i) {
-        val = ((float)dataArray[i*2+sendOffset]) * scaleCH1;
-        if (val > 5){val = 5;}
-        if (val < -5){val = -5;}
-        sprintf(sendString + i * SendCharBlockSize + SendBlockOffset, "{\"x\":%5.2f,\"y\":%8.4f},", (float)(i) * deltaTime, val);
-      }
-      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
-      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
-      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\n';
-      ws.textAll(sendString);
-      break;
-    case sendCH2:
-      state = ready;
-      sendString[4] = '2';
-      for (uint16_t i = 0; i < samplesPerSend +1; ++i) {
-        val = ((float)dataArray[i*2+1+sendOffset]) * scaleCH2;
-        if (val > 5){val = 5;}
-        if (val < -5){val = -5;}
-        sprintf(sendString + i * SendCharBlockSize + SendBlockOffset, "{\"x\":%5.2f,\"y\":%8.4f},", (float)(i) * deltaTime, val);
-      }
-      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
-      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
-      sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\n';
-      ws.textAll(sendString);
-
-      shouldStart = false;
-      break;
-    default:
-      state = ready;
-
-      shouldStart = false;
-      break;
+void generateSamples() {
+    int8_t* data = (int8_t*)testSamples;
+    int8_t val1, val2;
+    for (uint16_t i = 0; i < 1500; ++i) {
+        val1 = int8_t(100 * sin(2 * PI * 0.02 * i));
+        data[2 * i] = val1;
+        val2 = int8_t(100 * cos(2 * PI * 0.02 * i));
+        data[2 * i + 1] = val2;
     }
 }
 
@@ -224,7 +168,7 @@ void setup()
 {
   Serial.begin(115200);
   //Serial.setDebugOutput(false);
-  SPIFFS.begin();
+  LittleFS.begin();
   Serial.println("Setting up Access Point"); 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIp, apIp, subnetMask);//confiugre staitc ip of access point
@@ -240,7 +184,7 @@ void setup()
   webServer.addHandler(&ws);
   initHttpRequests();
   webServer.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
-  webServer.serveStatic("/", SPIFFS, "/");
+  //webServer.serveStatic("/", LittleFS, "/");
   webServer.begin();
   Serial.println("All Done!");
 
@@ -253,13 +197,9 @@ void setup()
 
 void loop()
 {
-  dnsServer.processNextRequest();
+  //dnsServer.processNextRequest();
   ws.cleanupClients();
   
-  if (shouldStart == true){
-
-    sendArray(testSamples);
-  }
   /*
   //lipo and expander update
   bool charging = expander.update();
