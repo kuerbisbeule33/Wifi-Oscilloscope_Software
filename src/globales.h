@@ -43,7 +43,6 @@ extern int16_t testSamples[];
 
 //wifi configuration
 extern const IPAddress apIp;
-extern const IPAddress gateway;
 extern const IPAddress subnetMask;
 extern const char *apSsid;
 extern const char *apPasswort;

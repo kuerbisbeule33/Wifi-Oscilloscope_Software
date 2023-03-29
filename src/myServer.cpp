@@ -2,7 +2,6 @@
 
 AsyncWebServer webServer(80);
 AsyncWebSocket ws("/ws");
-DNSServer dnsServer;//redirect to website on wifi connection
 
 void i8ToStringNoTermination(int8_t number, char* string, uint16_t startIndex) {
     uint8_t minusIndex = 0;
@@ -212,10 +211,12 @@ void msgToDataPair(uint8_t *msg, String &id, String &data){
 }
 
 void initHttpRequests() {
-    //requested file not there error
-    webServer.onNotFound([](AsyncWebServerRequest *request){
-    request->send(404, "text/plain", "The content you are looking for was not found."); });
-
+    // redirect to home on file not found (redirect on wifi connect with windows)
+    webServer.onNotFound([](AsyncWebServerRequest *request)
+        { request->send(LittleFS, "/index.html", "text/html"); });
+    //redirect for android
+    webServer.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request)
+               { request->send(LittleFS, "/index.html", "text/html"); });
     // website content
     // home and root
     webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request)

@@ -5,29 +5,10 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
-#include <DNSServer.h>
 #include "globales.h"
 
 extern AsyncWebServer webServer;
 extern AsyncWebSocket ws;
-extern DNSServer dnsServer;//redirect to website on wifi connection
-
-
-class CaptiveRequestHandler : public AsyncWebHandler
-{
-public:
-  CaptiveRequestHandler() {}
-  virtual ~CaptiveRequestHandler() {}
-  bool canHandle(AsyncWebServerRequest *request)
-  {
-    request->addInterestingHeader("ANY");
-    return true;
-  }
-  void handleRequest(AsyncWebServerRequest *request)
-  {
-    request->send(LittleFS, "/index.html", "text/html");
-  }
-};
 
 //callback for websocket Event
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);

@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <DNSServer.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -178,12 +177,10 @@ void setup()
   Serial.println(IP);
 
   // webserver initialisation
-  Serial.println("Starting DNS Server");
-  dnsServer.start(53, "*", WiFi.softAPIP());
   ws.onEvent(onEvent); // callback for websocket event
   webServer.addHandler(&ws);
   initHttpRequests();
-  webServer.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
+  //webServer.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
   //webServer.serveStatic("/", LittleFS, "/");
   webServer.begin();
   Serial.println("All Done!");
@@ -197,7 +194,6 @@ void setup()
 
 void loop()
 {
-  //dnsServer.processNextRequest();
   ws.cleanupClients();
   
   /*

@@ -24,8 +24,7 @@ uint16_t timeOffset = 0;
 int16_t testSamples[1500];
 
 //wifi configuration
-const IPAddress apIp(192, 168, 0, 1);//ip to access webserver when access point
-const IPAddress gateway(192, 168, 0,1);//mostly router address
+const IPAddress apIp(8, 8, 8, 8);//ip to access webserver when access point
 const IPAddress subnetMask(255, 255, 255, 0);
 const char *apSsid = "Oscilloscope";
 const char *apPasswort = "Oscilloscope";
