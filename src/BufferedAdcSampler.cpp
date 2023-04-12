@@ -173,6 +173,8 @@ uint16_t I2S_AdcSampler::readSample(uint16_t sampleID)
 		return (uint16_t)*samplePointer;
 	} else {
 		return (*samplePointer)>>16;
+    //return (int8_t)((*samplePointer)>>8);
+    //return *(((int8_t*)samplePointer) +1);
 	}
 }
 

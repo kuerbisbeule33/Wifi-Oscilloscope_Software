@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.75">
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="chartist.min.css">
-    <script src="chartist.min.js"></script>
     <link rel="icon" href="logo.png" type="image/png">
     <title>oscilloscope</title>
 
@@ -34,23 +33,9 @@
             text-align: center;
         }
 
-        .battery #battery-level.high {
-            background-color: #66CD00;
-            height: 100%;
-        }
-
-        .battery #battery-level.medium {
-            background-color: #FCD116;
-            height: 100%;
-        }
-
-        .battery #battery-level.low {
-            background-color: #FF3333;
-            height: 100%;
-        }
-
         .battery #battery-level {
             position: absolute;
+            height: 100%;
         }
 
         .battery #battery-text {
@@ -91,18 +76,17 @@
             <img src="logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
             oszilloskop
         </span>
-        </div>
 
         <ul class="navbar-nav ml-auto">
             <li class="nav-item">
                 <div class="battery hide" id="battery">
                     <div id="battery-level"></div>
                     <div id="battery-text">
-                        <svg id="loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/></svg>
+                        <svg id="loading" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/></svg>
                         <strong id="battery-percent"></strong>
                     </div>
                 </div>
-                <svg id="error" width="40" height="40" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve" fill="#ff0a0a" stroke="#ff0a0a"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.152"></g><g id="SVGRepo_iconCarrier"> <path fill="#ff0000" fill-opacity="1" stroke-width="0.2" stroke-linejoin="round" d="M 19,22L 57,22L 57,31L 19,31L 19,22 Z M 55,24L 53,24L 53,29L 55,29L 55,24 Z M 51,24L 49,24L 49,29L 51,29L 51,24 Z M 47,24L 45,24L 45,29L 47,29L 47,24 Z M 21,27L 21,29L 23,29L 23,27L 21,27 Z M 19,33L 57,33L 57,42L 19,42L 19,33 Z M 55,35L 53,35L 53,40L 55,40L 55,35 Z M 51,35L 49,35L 49,40L 51,40L 51,35 Z M 47,35L 45,35L 45,40L 47,40L 47,35 Z M 21,38L 21,40L 23,40L 23,38L 21,38 Z M 46.75,53L 57,53L 57,57L 46.75,57L 44.75,55L 46.75,53 Z M 29.25,53L 31.25,55L 29.25,57L 19,57L 19,53L 29.25,53 Z M 29.5147,59.9926L 34.5073,55L 29.5147,50.0074L 33.0074,46.5147L 38,51.5074L 42.9926,46.5147L 46.4853,50.0074L 41.7426,55L 46.4853,59.9926L 42.9926,63.4853L 38,58.7426L 33.0074,63.4853L 29.5147,59.9926 Z M 36,46.25L 36,44L 40,44L 40,46.25L 38,48.25L 36,46.25 Z "></path> </g></svg>
+                <svg id="error" width="40" height="40" viewBox="0 0 72 72"><path fill="#ff0000" fill-opacity="1" stroke-width="0.2" stroke-linejoin="round" d="M 19,22L 57,22L 57,31L 19,31L 19,22 Z M 55,24L 53,24L 53,29L 55,29L 55,24 Z M 51,24L 49,24L 49,29L 51,29L 51,24 Z M 47,24L 45,24L 45,29L 47,29L 47,24 Z M 21,27L 21,29L 23,29L 23,27L 21,27 Z M 19,33L 57,33L 57,42L 19,42L 19,33 Z M 55,35L 53,35L 53,40L 55,40L 55,35 Z M 51,35L 49,35L 49,40L 51,40L 51,35 Z M 47,35L 45,35L 45,40L 47,40L 47,35 Z M 21,38L 21,40L 23,40L 23,38L 21,38 Z M 46.75,53L 57,53L 57,57L 46.75,57L 44.75,55L 46.75,53 Z M 29.25,53L 31.25,55L 29.25,57L 19,57L 19,53L 29.25,53 Z M 29.5147,59.9926L 34.5073,55L 29.5147,50.0074L 33.0074,46.5147L 38,51.5074L 42.9926,46.5147L 46.4853,50.0074L 41.7426,55L 46.4853,59.9926L 42.9926,63.4853L 38,58.7426L 33.0074,63.4853L 29.5147,59.9926 Z M 36,46.25L 36,44L 40,44L 40,46.25L 38,48.25L 36,46.25 Z "></path></svg>
             </li>
         </ul>
     </nav>
@@ -117,7 +101,7 @@
                 <div class="row">
                     <div class="col-6 p-1">
                         <div class="p-3 card bg-light text-dark text-center">
-                            <h5 class="text-center">Aquisition</h5>
+                            <h5>Aquisition</h5>
                             <button class="btn btn-danger btn-block mt-2" id="start">stop</button>
                             <select class="custom-select mt-2" id="mode">
                                 <option value="3">single shot</option>
@@ -134,7 +118,7 @@
                             </select>
                         </div>
                         <div class="p-3 mt-2 card bg-light text-dark text-center">
-                            <h5 class="text-center">Levels</h5>
+                            <h5>Levels</h5>
                             <div class="row">
                                 <div class="col-3 p-0">CH1</div>
                                 <div class="col-3 p-0">CH2</div>
@@ -158,7 +142,7 @@
                     </div>
                     <div class="col-6 p-1">
                         <div class="p-3 card bg-light text-dark text-center">
-                            <h5 class="text-center">Display</h5>
+                            <h5>Display</h5>
                             <div class="custom-control custom-switch mt-2">
                                 <input type="checkbox" checked="true" class="custom-control-input" id="selectCH1">
                                 <label class="custom-control-label" for="selectCH1">CH1</label>
@@ -173,7 +157,7 @@
                             </div>
                         </div>
                         <div class="p-3 mt-2 card bg-light text-dark text-center">
-                            <h5 class="text-center">Vertical</h5>
+                            <h5>Vertical</h5>
                             <div class="row mt-2">
                                 <label for="exampleFormControlSelect1" class="col-4 col-form-label">CH1</label>
                                 <div class="col-8">
@@ -190,7 +174,7 @@
                                 </div>
                             </div>
                             <div class="row mt-2">
-                                <label for="exampleFormControlSelect1" class="col-4 col-form-label">CH2</label>
+                                <label for="gainCH2" class="col-4 col-form-label">CH2</label>
                                 <div class="col-8">
                                     <select class="form-control" id="gainCH2">
                                         <option value="1">1V/div</option>
@@ -206,19 +190,19 @@
                             </div>
                         </div>
                         <div class="p-3 mt-2 card bg-light text-dark text-center">
-                            <h5 class="text-center">Horizontal</h5>
+                            <h5>Horizontal</h5>
                             <div class="row m-2">
-                                <select class="form-control" id="exampleFormControlSelect1">
-                                    <option>0.5us/div</option>
-                                    <option>1us/div</option>
+                                <select class="form-control" id="time">
+                                    <option value="1">0.5us/div</option>
+                                    <option value="2">1us/div</option>
                                 </select>
                             </div>
                             <div class="row m-2">
-                                <input type="range" class="btn-block" id="timeOffset" min="0" max="1400" step="1" value="700"/>
+                                <input type="range" class="btn-block" id="timeOffset" min="0" max="1400" step="1" value="0"/>
                             </div>
                         </div>
                         <div class="p-3 mt-2 card bg-light text-dark text-center">
-                            <h5 class="text-center">Probe</h5>
+                            <h5>Probe</h5>
                             <div class="row m-2">
                                 <div class="d-inline">CH1</div>
                                 <div class="custom-control custom-radio custom-control-inline ml-auto">
@@ -252,6 +236,7 @@
         </div>
     </div>
 
+    <script src="chartist.min.js"></script>
     <script src="index.js"></script>
 </body>
 

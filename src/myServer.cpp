@@ -3,7 +3,7 @@
 AsyncWebServer webServer(80);
 AsyncWebSocket ws("/ws");
 
-void i8ToStringNoTermination(int8_t number, char* string, uint16_t startIndex) {
+void i8ToStringNoTerm(int8_t number, char* string, uint16_t startIndex) {
     uint8_t minusIndex = 0;
     bool negative = false;
     bool firstIsSet = false;
@@ -49,27 +49,24 @@ void i8ToStringNoTermination(int8_t number, char* string, uint16_t startIndex) {
 #define samplesPerSend 1500
 void sendArray(int16_t* data) {
     static char sendString[SendCharBlockSize * samplesPerSend + SendBlockOffset + 10] = "{\"CH1\":[";
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
+    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\0';
     int8_t* dataArray = (int8_t*)data;
     int8_t val;
 
     sendString[4] = '1';
     for (uint16_t i = 0; i < samplesPerSend; ++i) {
         val = dataArray[i * 2 + timeOffset];
-        i8ToStringNoTermination(val, sendString, i * 5 + SendBlockOffset);
+        i8ToStringNoTerm(val, sendString, i * 5 + SendBlockOffset);
     }
-    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
-    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
-    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\0';
     ws.textAll(sendString);
 
     sendString[4] = '2';
     for (uint16_t i = 0; i < samplesPerSend; ++i) {
         val = dataArray[i * 2 + 1 + timeOffset];
-        i8ToStringNoTermination(val, sendString, i * 5 + SendBlockOffset);
+        i8ToStringNoTerm(val, sendString, i * 5 + SendBlockOffset);
     }
-    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 1] = ']';
-    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset - 0] = '}';
-    sendString[samplesPerSend * SendCharBlockSize + SendBlockOffset + 1] = '\0';
     ws.textAll(sendString);
 }
 
@@ -226,14 +223,9 @@ void initHttpRequests() {
     webServer.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(LittleFS, "/index.js", "text/js"); });
     // libraries
-    // jquery
-    webServer.on("/jquery-3.6.3.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(LittleFS, "/jquery-3.6.3.min.js", "text/js"); });
     // bootstrap
     webServer.on("/bootstrap.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(LittleFS, "/bootstrap.min.css", "text/css"); });
-    webServer.on("/bootstrap.min.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(LittleFS, "/bootstrap.min.js", "text/js"); });
     // chartist
     webServer.on("/chartist.min.css", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(LittleFS, "/chartist.min.css", "text/css"); });

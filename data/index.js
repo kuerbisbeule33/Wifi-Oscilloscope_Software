@@ -10,25 +10,13 @@ function updateBattery(level, charging = false) {
         batteryLoading.classList.add('hide');
     }
     if (level > 50) {
-        batteryLevel.classList.add('high');
-        batteryLevel.classList.remove('medium');
-        batteryLevel.classList.remove('low');
+        batteryLevel.style.backgroundColor = "#66CD00";
     } else if (level >= 25) {
-        batteryLevel.classList.add('medium');
-        batteryLevel.classList.remove('high');
-        batteryLevel.classList.remove('low');
+        batteryLevel.style.backgroundColor = "#FCD116";
     } else {
-        batteryLevel.classList.add('low');
-        batteryLevel.classList.remove('high');
-        batteryLevel.classList.remove('medium');
+        batteryLevel.style.backgroundColor = "#FF3333";
     }
-}
-
-const arrayRange = (start, stop, step) =>
-    Array.from(
-    { length: (stop - start) / step + 1 },
-    (value, index) => start + index * step
-    );   
+}  
 
 const maxDiagrammX = 10;
 const options = {
@@ -38,8 +26,8 @@ const options = {
         showLabel: false,
         type : Chartist.FixedScaleAxis,
         low : 0,
-        high : 10,
-        ticks : [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        high : maxDiagrammX,
+        ticks : [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, maxDiagrammX]
     },
     axisY: {
         offset: 0,
@@ -53,12 +41,8 @@ const options = {
 
 var dataCH1;
 var dataCH2;
-
 var data = {series: [[], [{ x: 0, y: 0}, { x: maxDiagrammX, y: 0}], [], [{ x: 0, y: 0}, { x: maxDiagrammX, y: 0}], [{ x: 0, y: 0}, { x: maxDiagrammX, y: 0}]]};
-
 var chart = new Chartist.Line('.ct-chart', data, options);
-
-
 
 var gateway = `ws://${window.location.hostname}/ws`;
 var websocket;
@@ -74,7 +58,7 @@ function initElements() {
             var val = document.getElementById('sliderCH1').value;
             var line = [{ x: 0, y: val}, { x: maxDiagrammX, y: val}];
             data.series[1] = line;
-            if (showCH1){ updateCH1(); }
+            updateCH1();
         } else {
             showCH1 = false; 
             data.series[0] = [];
@@ -89,7 +73,7 @@ function initElements() {
             var val = document.getElementById('sliderCH2').value;
             var line = [{ x: 0, y: val}, { x: maxDiagrammX, y: val}];
             data.series[3] = line;
-            if (showCH2){ updateCH2(); }
+            updateCH2();
         } else {
             showCH2 = false; 
             data.series[2] = [];
@@ -182,16 +166,13 @@ function initElements() {
     });
     document.getElementById('CH1_10:1').addEventListener('change', function() {
         if (showCH1){ updateCH1(); }
-        console.log("trigger probe CH1");
     });
 
     document.getElementById('CH2_1:1').addEventListener('change', function() {
         if (showCH2){ updateCH2(); }
-        console.log("trigger probe CH2");
     });
     document.getElementById('CH2_10:1').addEventListener('change', function() {
         if (showCH2){ updateCH2(); }
-        console.log("trigger probe CH2");
     });
 }
 
@@ -226,40 +207,35 @@ function onClose(event) {
 
 //recived new message through websocket
 function onMessage(event) {
-    console.log(event.data);
+    //console.log(event.data);
     var recivedData = JSON.parse(event.data);
     //console.log(recivedData);
     //console.log("id:" + recivedData.id + "|data:" + recivedData.data);
-    //console.log(recivedData.CH1);
-    //console.log(recivedData.CH2);
     if (recivedData.hasOwnProperty("CH1")) {
         dataCH1 = recivedData.CH1;
         if (showCH1){
             updateCH1();
         }
-        console.log(dataCH1);
     }
     else if (recivedData.hasOwnProperty("CH2")) {
         dataCH2 = recivedData.CH2;
         if (showCH2){
             updateCH2();
         }
-        console.log(dataCH1);
     }
     else if (recivedData.hasOwnProperty("battery")) {updateBattery(recivedData.battery[0], recivedData.battery[1]);}
 }
 
-const samplesPerSend = 100;
-const timeDelta = maxDiagrammX / samplesPerSend;
+const samplesPerDisplay = 100;
+const timeDelta = maxDiagrammX / samplesPerDisplay;
 function updateCH1(){
     const dataTimeOffset = Number(document.getElementById('timeOffset').value);
-    const scale = Number(document.getElementById('gainCH1').value);
+    var scale = Number(1);
+    if (document.getElementById('mode').value == "3"){ scale = Number(document.getElementById('gainCH1').value); } //selected Gain for single shot mode
     var probe = Number(1);
-    if (document.getElementById('CH1_10:1').checked){
-        probe = 1/Number(10);
-    }
+    if (document.getElementById('CH1_10:1').checked){ probe = 1/Number(10); } //scale with probe
     var val;
-    for (let i = 0; i < samplesPerSend; i++) {
+    for (let i = 0; i < samplesPerDisplay; i++) {
         val = dataCH1[Number(i) + Number(dataTimeOffset)] * scale * probe;
         if (val > 5){ val = 5; }
         if (val < -5){ val = -5; }
@@ -269,51 +245,17 @@ function updateCH1(){
 }
 function updateCH2(){
     const dataTimeOffset = Number(document.getElementById('timeOffset').value);
-    const scale = Number(document.getElementById('gainCH2').value);
+    var scale = Number(1);
+    if (document.getElementById('mode').value == "3"){ scale = Number(document.getElementById('gainCH2').value); } //selected Gain for single shot mode
     var probe = Number(1);
-    if (document.getElementById('CH2_10:1').checked){
-        probe = 1/Number(10);
-    }
+    if (document.getElementById('CH2_10:1').checked){ probe = 1/Number(10); } // scale with probe
     var val;
-    for (let i = 0; i < samplesPerSend; i++) {
+    for (let i = 0; i < samplesPerDisplay; i++) {
         val = dataCH2[Number(i) + Number(dataTimeOffset)] * scale * probe;
         if (val > 5){ val = 5; }
         if (val < -5){ val = -5; }
         data.series[2][i] = {"x": i*timeDelta, "y": val};
     }
-    //console.log("sample Array: ");
-    //console.log(sampleArray);
-    //console.log("chartist Data: ");
-    //console.log(data);
-    chart.update();
-}
-
-function updataChartData(channel, sampleArray){
-    var val;
-    for (let i = 0; i < samplesPerSend; i++) {
-        if (channel == "CH1"){
-            val = sampleArray[i + dataTimeOffset] * scaleCH1;
-            //console.log("i: ");
-            //console.log(i);
-            //console.log("dataTimeOffset: ");
-            //console.log(dataTimeOffset);
-        }
-        else{
-            val = sampleArray[i + dataTimeOffset] * scaleCH2;
-        }
-        if (val > 5){ val = 5; }
-        if (val < -5){ val = -5; }
-        if (channel == "CH1"){
-            data.series[0][i] = {"x": i*timeDelta, "y": val};
-        }
-        else{
-            data.series[2][i] = {"x": i*timeDelta, "y": val};
-        }
-    }
-    //console.log("sample Array: ");
-    //console.log(sampleArray);
-    //console.log("chartist Data: ");
-    //console.log(data);
     chart.update();
 }
 
