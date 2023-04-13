@@ -19,18 +19,18 @@ extern const uint8_t CH2_AC_SEL;
 extern const uint8_t STATUS_LED;
 extern const uint8_t CHARGING;
 
-//extern Adafruit_MAX17048 lipo;
-//extern float cellPercent;
-//extern myExpander expander;
+extern Adafruit_MAX17048 lipo;
+extern float cellPercent;
+extern myExpander expander;
 
-//extern const uint8_t DAC_CH1;
-//extern const uint8_t DAC_CH2;
-//extern MCP4726 triggerDac;
+extern const uint8_t DAC_CH1;
+extern const uint8_t DAC_CH2;
+extern MCP4726 triggerDac;
 
-//extern I2S_AdcSampler adcSampler;
-//extern int trigIN;
-//extern const int trig1IN;
-//extern const int trig2IN;
+extern I2S_AdcSampler adcSampler;
+extern int trigIN;
+extern const int trig1IN;
+extern const int trig2IN;
 
 typedef enum {falling = 2, rising = 1} TRIGGER_EDGE_E;
 typedef enum {stopTrig = 0, noneTrig = 1, autoTrig = 2, singleTrig = 3} TRIGGER_MODE_E;

@@ -23,13 +23,13 @@ int trigIN = 15;
 const int D_inputs[16] = {23,19,18,5,17,16,4,2,36,39,34,35,32,33,14,12}; //first byte ch1 / second byte ch2
 
 
-//const char * triggerTexts[4] = {"stop\0", "none\0","auto\0","single\0"};
-//const int triggerEdgeConfig[2] = {FALLING, RISING};
-//I2S_AdcSampler adcSampler;
-//bool bufferIsFilled = false;
-//portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+const char * triggerTexts[4] = {"stop\0", "none\0","auto\0","single\0"};
+const int triggerEdgeConfig[2] = {FALLING, RISING};
+I2S_AdcSampler adcSampler;
+bool bufferIsFilled = false;
+portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
-/*
+
 bool ClockEnable(int pin, int Hz)
 {
     periph_module_enable(PERIPH_LEDC_MODULE);
@@ -72,9 +72,9 @@ void ClockDisable()
   DEBUG_PRINTLN("Trigger detected!");
   portEXIT_CRITICAL_ISR(&mux);
 }
-*/
+
 /* send data points in responce to "/scope" request */
-/*
+
 void updateADC() {
   int strPointer = 0;
 	uint16_t samplesCount = 0;
@@ -150,7 +150,7 @@ void updateADC() {
 		}
 	}
 }
-*/
+
 
 void generateSamples() {
     int8_t* data = (int8_t*)testSamples;
@@ -196,7 +196,6 @@ void loop()
 {
   ws.cleanupClients();
   
-  /*
   //lipo and expander update
   bool charging = expander.update();
   float newCellPercent = lipo.cellPercent();
@@ -211,5 +210,5 @@ void loop()
   }
   cellPercent = newCellPercent;
   // check if buffer is full
-  */
+  
 }
